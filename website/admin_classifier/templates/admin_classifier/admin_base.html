@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit</title>
+</head>
+<body>
+    <h2>Upload</h2>
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" name="pkl">
+        <button type="submit">Upload File</button>
+    </form>
+    {% if pkl_message %}
+        <p>{{ pkl_message }}</p>
+    {% endif %}
+
+    <br>
+    <h2>OR</h2>
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" name="csv">
+        <button type="submit">Upload File</button>
+    </form>
+    {% if csv_message %}
+        <p>{{ csv_message }}</p>
+    {% endif %}
+
+    <br>
+    <form action = "" method = "post">
+        {% csrf_token %}
+        {{ form.as_ul }}
+        <input type="submit" name="submit" value="Submit">
+    </form>
+
+    {% if submitbutton == "Submit" %}
+        <h5> {{ message }} with {{ accuracy }}% Training Accuracy</h5>
+    {% endif %}
+
+</body>
+</html>

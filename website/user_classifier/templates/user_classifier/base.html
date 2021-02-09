@@ -1,0 +1,35 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>KNN</title>
+    <script type="text/javascript">
+        function picture(){
+        var pic = "{% static 'user_classifier/img/my_graph.png' %}"
+        document.getElementById('graph').src = pic.replace('90x90', '225x225');
+        document.getElementById('graph').style.display='block';
+        }
+    </script>
+</head>
+<body>
+
+<h3>Algorithm Description ...</h3>
+<br>
+
+<form action = "" method = "post">
+    {% csrf_token %}
+    {{ form.as_ul }}
+    <input type="submit" name="submit" value="Submit">
+</form>
+
+{% if submitbutton == "Submit" %}
+<h5> {{ message }}</h5>
+{% endif %}
+
+<br>
+<img id="graph" src="graph" style="display:none;" />
+<button onclick="picture()">Show Graph</button>
+</body>
+</html>
