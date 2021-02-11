@@ -24,9 +24,9 @@ def home_view(request):
         preds = classifier.predict([[age, salary]])
 
         if preds == 0:
-            message = "Customer will not buy the product"
+            message = "No, the customer will not buy the product"
         else:
-            message = "Customer will buy the product"
+            message = "Yes, the customer will buy the product"
 
     context = {'form': form, 'message': message, 'submitbutton': submitbutton}
 

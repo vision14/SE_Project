@@ -5,7 +5,8 @@
     <title>Edit</title>
 </head>
 <body>
-    <h2>Upload</h2>
+    <h1>KNN Classification</h1>
+    <h2>Upload Pickle File</h2>
     <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
         <input type="file" name="pkl">
@@ -16,7 +17,7 @@
     {% endif %}
 
     <br>
-    <h2>OR</h2>
+    <h2>OR Upload a CSV File</h2>
     <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
         <input type="file" name="csv">
@@ -24,17 +25,18 @@
     </form>
     {% if csv_message %}
         <p>{{ csv_message }}</p>
-    {% endif %}
-
     <br>
+    <h3>Please provide all the hyper parameter values:</h3>
     <form action = "" method = "post">
         {% csrf_token %}
-        {{ form.as_ul }}
+        {{ form.as_p }}
         <input type="submit" name="submit" value="Submit">
     </form>
+    {% endif %}
 
     {% if submitbutton == "Submit" %}
-        <h5> {{ message }} with {{ accuracy }}% Training Accuracy</h5>
+        <h3>Result</h3>
+        <p> {{ message }} with {{ accuracy }}% Training Accuracy</p>
     {% endif %}
 
 </body>
