@@ -3,31 +3,55 @@ from .forms import InputForm
 import pickle
 from django.conf import settings
 import os
+from django.views import View
+from pymongo import MongoClient
 
 # Create your views here.
-with open(os.path.join(settings.MEDIA_ROOT, 'my_classifier.pkl'), 'rb') as file:
-    classifier = pickle.load(file)
+client = MongoClient("mongodb+srv://user_1:USER_1@cluster0.0oqke.mongodb.net/<dbname>?retryWrites=true&w=majority")
+db = client.get_database('learnml_db')
+db_data = db.classification
+data = list(db_data.find())[0]['pkl_data']
+classifier = pickle.loads(data)
 
 
-def home_view(request):
+class Algorithm(View):
 
+    def get(self, request):
+        pass
+
+    def post(self, request):
+        pass
+
+
+class Classification(Algorithm):
+
+    form_class = InputForm
+    template_name = 'user_classifier/base.html'
     message = ""
-    age = 0
-    salary = 0
-    submitbutton = request.POST.get("submit")
+    submit_button = None
 
-    form = InputForm(request.POST or None)
-    if form.is_valid():
-        age = int(form.cleaned_data.get("age"))
-        salary = int(form.cleaned_data.get("salary"))
+    def get(self, request):
 
-        preds = classifier.predict([[age, salary]])
+        form = self.form_class()
+        context = {'form': form, 'message': self.message, 'submitbutton': self.submit_button}
 
-        if preds == 0:
-            message = "No, the customer will not buy the product"
-        else:
-            message = "Yes, the customer will buy the product"
+        return render(request, self.template_name, context)
 
-    context = {'form': form, 'message': message, 'submitbutton': submitbutton}
+    def post(self, request):
 
-    return render(request, 'user_classifier/base.html', context)
+        form = self.form_class(request.POST)
+        self.submit_button = request.POST.get("submit")
+
+        if form.is_valid():
+            age = int(form.cleaned_data.get("age"))
+            salary = int(form.cleaned_data.get("salary"))
+            preds = classifier.predict([[age, salary]])
+
+            if preds == 0:
+                self.message = "No, the customer will not buy the product"
+            else:
+                self.message = "Yes, the customer will buy the product"
+
+        context = {'form': form, 'message': self.message, 'submitbutton': self.submit_button}
+
+        return render(request, self.template_name, context)
