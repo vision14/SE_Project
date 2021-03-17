@@ -5,25 +5,22 @@
 <head>
     <meta charset="UTF-8">
     <title>KNN</title>
-    <script type="text/javascript">
-        function picture(){
-        var pic = "{% static 'user_classifier/img/my_graph.png' %}"
-        document.getElementById('graph').src = pic.replace('90x90', '225x225');
-        document.getElementById('graph').style.display='block';
+    <style>
+        .graph {
+            display: none;
         }
-    </script>
+
+        .graph_check:checked ~ .graph {
+            display: block;
+        }
+    </style>
 </head>
 <body>
 <h1>KNN Classification</h1>
 <h3>Algorithm Description:</h3>
-<p>K-Nearest Neighbors is a lazy classification algorithm that uses a distance formula
-    to assign label to datapoint. In other words, KNN classifies a datapoint based on the
-    characteristics of its neighbors. Python’s sklearn library supports calculating distances
-    using two different formulas: Manhattan Distance and Euclidian Distance.</p>
+<p>{{ algo_desc }}</p>
 <h3>Dataset Description:</h3>
-<p>The dataset used to train this model contains two features: Age of the customer and Salary
-    of the customer. Using these two features, the model tries to predict whether the customer
-    is likely to buy a certain product or not.</p>
+<p>{{ ds_desc }}</p>
 <p>Sample Data:</p>
 <table>
     <tr>
@@ -61,7 +58,10 @@
 
 <form action = "" method = "post">
     {% csrf_token %}
-    {{ form.as_p }}
+    {% for feature in training_features %}
+        <label>{{ feature }}</label>
+        <input type="number" name="user_inputs" required><br>
+    {% endfor %}
     <input type="submit" name="submit" value="Submit">
 </form>
 
@@ -71,7 +71,7 @@
 {% endif %}
 
 <br>
-<img id="graph" style="display:none;" />
-<button onclick="picture()">Show Graph</button>
+<input type="checkbox" class="graph_check" name="graph_check">Show Graph
+<img src="{% static 'user_classifier/img/my_graph.png' %}" class="graph" name="graph"/>
 </body>
 </html>

@@ -5,13 +5,12 @@ from django.conf import settings
 import os
 from django.views import View
 from pymongo import MongoClient
+import numpy as np
 
 # Create your views here.
 client = MongoClient("mongodb+srv://user_1:USER_1@cluster0.0oqke.mongodb.net/<dbname>?retryWrites=true&w=majority")
 db = client.get_database('learnml_db')
-db_data = db.classification
-data = list(db_data.find())[0]['pkl_data']
-classifier = pickle.loads(data)
+db_data = db.algorithms
 
 
 class Algorithm(View):
@@ -25,33 +24,34 @@ class Algorithm(View):
 
 class Classification(Algorithm):
 
-    form_class = InputForm
     template_name = 'user_classifier/base.html'
     message = ""
     submit_button = None
 
     def get(self, request):
 
-        form = self.form_class()
-        context = {'form': form, 'message': self.message, 'submitbutton': self.submit_button}
+        data = db_data.find_one({'name': 'KNN'})
+        context = {'algo_desc': data['algo_desc'], 'ds_desc': data['ds_desc'],
+                   'training_features': data['training_features']}
 
         return render(request, self.template_name, context)
 
     def post(self, request):
 
-        form = self.form_class(request.POST)
-        self.submit_button = request.POST.get("submit")
-
-        if form.is_valid():
-            age = int(form.cleaned_data.get("age"))
-            salary = int(form.cleaned_data.get("salary"))
-            preds = classifier.predict([[age, salary]])
+        data = db_data.find_one({'name': 'KNN'})
+        classifier = pickle.loads(data['pkl_data'])
+        if 'submit' in request.POST:
+            self.submit_button = request.POST.get("submit")
+            user_inputs = np.array(request.POST.getlist('user_inputs')).astype(np.float64)
+            preds = classifier.predict([user_inputs])
 
             if preds == 0:
                 self.message = "No, the customer will not buy the product"
             else:
                 self.message = "Yes, the customer will buy the product"
 
-        context = {'form': form, 'message': self.message, 'submitbutton': self.submit_button}
+        context = {'algo_desc': data['algo_desc'], 'ds_desc': data['ds_desc'],
+                   'training_features': data['training_features'],
+                   'message': self.message, 'submitbutton': self.submit_button}
 
         return render(request, self.template_name, context)

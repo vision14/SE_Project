@@ -6,6 +6,18 @@
 </head>
 <body>
     <h1>KNN Classification</h1>
+    <h2>Descriptions:</h2>
+    <form action = "" method = "post">
+        {% csrf_token %}
+        <h3>Algorithm Description:</h3>
+        <textarea name="algo_desc" rows="4" cols="50">{{ algo_desc }}</textarea><br>
+        <h3>Dataset Description:</h3>
+        <textarea name="ds_desc" rows="4" cols="50">{{ ds_desc }}</textarea><br>
+        <input type="submit" name="update" value="Update"><br>
+    </form>
+    {% if update_message %}
+        <p>{{ update_message }}</p>
+    {% endif %}
     <h2>Upload Pickle File</h2>
     <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
@@ -23,15 +35,41 @@
         <input type="file" name="csv">
         <button type="submit">Upload File</button>
     </form>
+
     {% if csv_message %}
         <p>{{ csv_message }}</p>
-    <br>
-    <h3>Please provide all the hyper parameter values:</h3>
-    <form action = "" method = "post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <input type="submit" name="submit" value="Submit">
-    </form>
+        <br>
+        <h3>Please provide all the hyper parameter values:</h3>
+        <form action = "" method = "post">
+            {% csrf_token %}
+            <label for="neighbors">N Neighbors: </label>
+            <input type="number" id="neighbors" name="neighbors"><br>
+            <label for="leaf">Leaves Size: </label>
+            <input type="number" id="leaf" name="leaf"><br>
+            <label for="weights">Weight Type:</label>
+            <select id="weights" name="weights">
+                <option value="uniform">Uniform</option>
+                <option value="distance">Distance</option>
+            </select><br>
+            <label for="algorithm">Algorithm Type:</label>
+            <select id="algorithm" name="algorithm">
+                <option value="auto">Auto</option>
+                <option value="ball_tree">Ball tree</option>
+                <option value="kd_tree">KD tree</option>
+                <option value="brute">Brute</option>
+            </select><br>
+            <span>Please Provide the Features for Training:</span><br>
+            {% for feature in features %}
+                <input type="checkbox" name="training_features" value="{{ feature }}">
+                <span>{{ feature }}</span><br>
+            {% endfor %}
+            <span>Please Provide the Label for Training:</span><br>
+            {% for feature in features %}
+                <input type="radio" name="training_label" value="{{ feature }}">
+                <span>{{ feature }}</span><br>
+            {% endfor %}
+            <input type="submit" name="submit" value="Submit">
+        </form>
     {% endif %}
 
     {% if submitbutton == "Submit" %}
