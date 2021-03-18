@@ -24,7 +24,7 @@ class Algorithm(View):
 
 class Classification(Algorithm):
 
-    template_name = 'user_classifier/base.html'
+    template_name = 'user_classifier/generic.html'
     message = ""
     submit_button = None
 
@@ -39,8 +39,12 @@ class Classification(Algorithm):
     def post(self, request):
 
         data = db_data.find_one({'name': 'KNN'})
-        classifier = pickle.loads(data['pkl_data'])
+        if data['upload_method'] == 'pkl':
+            classifier = pickle.loads(pickle.loads(data['pkl_data']).read())
+        else:
+            classifier = pickle.loads(data['pkl_data'])
         if 'submit' in request.POST:
+            print(type(classifier))
             self.submit_button = request.POST.get("submit")
             user_inputs = np.array(request.POST.getlist('user_inputs')).astype(np.float64)
             preds = classifier.predict([user_inputs])

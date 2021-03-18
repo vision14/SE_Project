@@ -27,7 +27,7 @@ class Algorithm(View):
 
 class Classification(Algorithm):
 
-    template_name = 'admin_classifier/admin_base.html'
+    template_name = 'admin_classifier/elements.html'
     context = {}
     feature_list = []
     submit_button = None
@@ -73,7 +73,7 @@ class Classification(Algorithm):
             upload_file = request.FILES['pkl']
             if upload_file.content_type == 'application/octet-stream':
                 pkl_obj = pickle.dumps(upload_file)
-                mongo_data = {'pkl_data': Binary(pkl_obj)}
+                mongo_data = {'pkl_data': Binary(pkl_obj), 'upload_method': 'pkl'}
                 try:
                     db_data.update_one({"name": "KNN"}, {"$set": mongo_data})
                     self.pkl_message = "File Uploaded"
@@ -114,7 +114,7 @@ class Classification(Algorithm):
             y_pred = classifier.predict(X)
 
             pkl_obj = pickle.dumps(classifier)
-            mongo_data = {'pkl_data': Binary(pkl_obj), 'training_features': training_features}
+            mongo_data = {'pkl_data': Binary(pkl_obj), 'training_features': training_features, 'upload_method': 'csv'}
             try:
                 db_data.update_one({"name": "KNN"}, {"$set": mongo_data})
                 self.accuracy = round(accuracy_score(y, y_pred)*100, 2)

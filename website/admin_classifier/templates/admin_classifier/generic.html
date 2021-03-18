@@ -1,0 +1,189 @@
+{% load static %}
+
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>Generic - Solid State by HTML5 UP</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="{% static 'assets/css/main.css' %}" />
+		<noscript><link rel="stylesheet" href="{% static 'assets/css/noscript.css' %}" /></noscript>
+	</head>
+	<body class="is-preload">
+
+		<!-- Page Wrapper -->
+			<div id="page-wrapper">
+
+				<!-- Header -->
+					<header id="header">
+						<h1><a href="{% url 'user_home' %}">LearnML</a></h1>
+						<nav>
+							<a href="#menu">Menu</a>
+						</nav>
+					</header>
+
+				<!-- Menu -->
+					<nav id="menu">
+						<div class="inner">
+							<h2>Menu</h2>
+							<ul class="links">
+								<li><a href="index.html">Home</a></li>
+								<li><a href="generic.html">Generic</a></li>
+								<li><a href="elements.html">Elements</a></li>
+								<li><a href="#">Log In</a></li>
+								<li><a href="#">Sign Up</a></li>
+							</ul>
+							<a href="#" class="close">Close</a>
+						</div>
+					</nav>
+
+				<!-- Wrapper -->
+					<section id="wrapper">
+						<header>
+							<div class="inner">
+								<h2>Classification</h2>
+								<p>Classification is the process of predicting the class of given data points. Classes are sometimes called as targets/ labels or categories. Classification predictive modeling is the task of approximating a mapping function (f) from input variables (X) to discrete output variables (y). <a href="https://towardsdatascience.com/machine-learning-classifiers-a5cc4e1b0623">Learn More</a></p>
+							</div>
+						</header>
+
+						<!-- Content -->
+							<div class="wrapper">
+								<div class="inner">
+									
+									<form method="post" action="#wrapper">
+									{% csrf_token %}
+									<div class="fields">
+										<div class="field">
+											<h3 class="major">Algorithm Description:</h3>
+											<textarea name="algo_desc" rows="4">{{ algo_desc }}</textarea>
+										</div>
+
+										<div class="field">
+											<h3 class="major">Dataset Description:</h3>
+											<textarea name="ds_desc" rows="4" cols="50">{{ ds_desc }}</textarea>
+										</div>
+									</div>
+									
+									<ul class="actions">
+										<li><input type="submit" name="update" value="Update"></li>
+									</ul>
+									</form>
+									
+									{% if update_message %}
+										<p>{{ update_message }}</p>
+									{% endif %}
+								</div>
+							</div>
+							
+							<div class="wrapper">
+								<div class="inner">
+									<h2 class="major">Upload Pickle File</h2>
+									<form method="post" action="#wrapper" enctype="multipart/form-data">
+									{% csrf_token %}
+									<div class="fields">
+										<div class="field">
+											<input type="file" name="pkl">
+											<button type="submit">Upload File</button>
+										</div>
+									</div>
+									</form>
+									
+									{% if pkl_message %}
+										<p>{{ pkl_message }}</p>
+									{% endif %}
+								</div>
+								
+								<div class="inner">
+									<h2 class="major">OR Upload a CSV File</h2>
+									<form method="POST" action="#wrapper" enctype="multipart/form-data">
+										{% csrf_token %}
+										<div class="fields">
+											<div class="field">
+												<input type="file" name="csv">
+												<button type="submit">Upload File</button>
+											</div>
+										</div>
+									</form>
+								</div>
+							</div>
+					</section>
+
+				<!-- Footer -->
+					<section id="footer">
+						<div class="inner">
+							{% if csv_message %}
+							<p>{{ csv_message }}</p>
+							<h3 class="major">Please provide all the hyper parameter values:</h3>
+							<form method="post" action="#footer">
+								{% csrf_token %}
+								<div class="row gtr-uniform">
+									<div class="col-12">
+										<label for="neighbors">N Neighbors: </label>
+										<input type="number" id="neighbors" name="neighbors">
+									</div>
+									<div class="col-12">
+										<label for="leaf">Leaves Size: </label>
+										<input type="number" id="leaf" name="leaf">
+									</div>
+									<div class="col-12">
+										<label for="weights">Weight Type:</label>
+										<select id="weights" name="weights">
+											<option value="uniform">Uniform</option>
+											<option value="distance">Distance</option>
+										</select>
+									</div>
+									<div class="col-12">
+										<label for="algorithm">Algorithm Type:</label>
+										<select id="algorithm" name="algorithm">
+											<option value="auto">Auto</option>
+											<option value="ball_tree">Ball tree</option>
+											<option value="kd_tree">KD tree</option>
+											<option value="brute">Brute</option>
+										</select>
+									</div>
+									<div class="col-12">
+										<p>Please Provide the Features for Training:</p>
+										{% for feature in features %}
+											<input type="checkbox" name="training_features" value="{{ feature }}">
+											<label>{{ feature }}</label><br>
+										{% endfor %}
+									</div>
+									<div class="col-12">
+										<p>Please Provide the Label for Training:</p>
+										{% for feature in features %}
+											<input type="radio" name="training_label" value="{{ feature }}">
+											<label>{{ feature }}</label><br>
+										{% endfor %}
+									</div>
+								</div>
+								<ul class="actions">
+									<li><input type="submit" name="submit" value="Submit"/></li>
+								</ul>
+							</form>
+							{% endif %}
+
+							{% if submitbutton == "Submit" %}
+							<div class="inner">
+								<h2 class="major">Result</h2>
+								<p> {{ message }} with {{ accuracy }}% Training Accuracy</p>
+							</div>
+							{% endif %}
+
+							<ul class="copyright">
+								<li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+							</ul>
+						</div>
+					</section>
+
+			</div>
+
+		<!-- Scripts -->
+			<script src="{% static 'assets/js/jquery.min.js' %}"></script>
+			<script src="{% static 'assets/js/jquery.scrollex.min.js' %}"></script>
+			<script src="{% static 'assets/js/browser.min.js' %}"></script>
+			<script src="{% static 'assets/js/breakpoints.min.js' %}"></script>
+			<script src="{% static 'assets/js/util.js' %}"></script>
+			<script src="{% static 'assets/js/main.js' %}"></script>
+
+	</body>
+</html>
