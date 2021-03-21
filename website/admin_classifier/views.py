@@ -7,6 +7,7 @@ from sklearn.metrics import accuracy_score
 from django.views import View
 from pymongo import MongoClient
 from bson.binary import Binary
+from base64 import b64encode
 
 data = pd.DataFrame({})
 client = MongoClient("mongodb+srv://user_1:USER_1@cluster0.0oqke.mongodb.net/<dbname>?retryWrites=true&w=majority")
@@ -34,6 +35,7 @@ class Classification(Algorithm):
     update_button = None
     message = None
     pkl_message = None
+    pkl_change_message = None
     csv_message = None
     update_message = None
     accuracy = None
@@ -83,6 +85,34 @@ class Classification(Algorithm):
                 self.pkl_message = "Invalid File Type"
             self.context = {'pkl_message': self.pkl_message, 'algo_desc': self.algo_desc,
                             'ds_desc': self.ds_desc}
+        elif 'pkl_change' in request.POST:
+            if request.FILES['graph_image'].content_type == 'image/png' or request.FILES['graph_image'].content_type == 'image/jpeg' or request.FILES['graph_image'].content_type == 'image/jpg':
+                pkl_features_temp = str(request.POST.get('pkl_features')).split(',')
+                pkl_features = []
+                for feature in pkl_features_temp:
+                    pkl_features.append(feature.strip())
+                pkl_label_temp = str(request.POST.get("pkl_label")).split("\r\n")
+                pkl_label = {}
+                for label in pkl_label_temp:
+                    temp = label.split("=")
+                    pkl_label[temp[0].strip()] = temp[1].strip()
+                image_file = request.FILES['graph_image']
+                image_data = image_file.read()
+                encoded_image = str(b64encode(image_data))[2:-1]
+                mime = str(image_file.content_type)
+                mime = mime + ';' if mime else ';'
+                graph_image = "data:%sbase64,%s" % (mime, encoded_image)
+                mongo_data = {'training_label': pkl_label, 'training_features': pkl_features,
+                              'graph_image': graph_image}
+                try:
+                    db_data.update_one({"name": "KNN"}, {"$set": mongo_data})
+                    self.pkl_change_message = "File Uploaded"
+                except:
+                    self.pkl_change_message = "Unexpected error while uploading pickle changes"
+            else:
+                self.pkl_change_message = "Invalid Image Type"
+            self.context = {'pkl_change_message': self.pkl_change_message, 'algo_desc': self.algo_desc,
+                            'ds_desc': self.ds_desc}
         elif 'csv' in request.FILES:
             upload_file = request.FILES['csv']
             if upload_file.content_type == 'application/vnd.ms-excel':
@@ -102,6 +132,11 @@ class Classification(Algorithm):
             algorithm = str(request.POST.get("algorithm"))
             training_features = list(request.POST.getlist("training_features"))
             training_label = str(request.POST.get("training_label"))
+            label_output_temp = str(request.POST.get("label_output")).split("\r\n")
+            label_output = {}
+            for label in label_output_temp:
+                temp = label.split("=")
+                label_output[temp[0].strip()] = temp[1].strip()
 
             X = data.loc[:, training_features].values
             y = data.loc[:, training_label].values
@@ -114,7 +149,8 @@ class Classification(Algorithm):
             y_pred = classifier.predict(X)
 
             pkl_obj = pickle.dumps(classifier)
-            mongo_data = {'pkl_data': Binary(pkl_obj), 'training_features': training_features, 'upload_method': 'csv'}
+            mongo_data = {'pkl_data': Binary(pkl_obj), 'training_features': training_features,
+                          'training_label': label_output, 'upload_method': 'csv'}
             try:
                 db_data.update_one({"name": "KNN"}, {"$set": mongo_data})
                 self.accuracy = round(accuracy_score(y, y_pred)*100, 2)

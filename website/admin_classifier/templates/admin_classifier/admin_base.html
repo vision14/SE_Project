@@ -21,6 +21,14 @@
     <h2>Upload Pickle File</h2>
     <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
+        <h3>Please provide all feature names separated by commas:</h3>
+        <p>For Example: Age, Estimated Salary</p>
+        <textarea name="pkl_features" rows="4" cols="50"></textarea><br>
+        <h3>Please provide label output to be displayed to the user:</h3>
+        <p>For Example:</p>
+        <p>0 => The customer will not buy the product</p>
+        <p>1 => The customer will buy the product</p>
+        <textarea name="pkl_label" rows="4" cols="50"></textarea><br>
         <input type="file" name="pkl">
         <button type="submit">Upload File</button>
     </form>

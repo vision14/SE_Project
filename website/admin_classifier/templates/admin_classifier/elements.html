@@ -50,8 +50,8 @@
 							<div class="wrapper">
 								<div class="inner">
 
-									<section>
-										<form method="post" action="#wrapper">
+									<section id="description_section">
+										<form method="post" action="#description_section">
 											{% csrf_token %}
 											<div class="fields">
 												<div class="field">
@@ -61,7 +61,7 @@
 
 												<div class="field">
 													<h3 class="major">Dataset Description:</h3>
-													<textarea name="ds_desc" rows="4" cols="50">{{ ds_desc }}</textarea>
+													<textarea name="ds_desc" rows="4">{{ ds_desc }}</textarea>
 												</div>
 											</div>
 											
@@ -69,45 +69,81 @@
 												<li><input type="submit" name="update" value="Update"></li>
 											</ul>
 										</form>
-									
+
 										{% if update_message %}
 											<p>{{ update_message }}</p>
 										{% endif %}
 									</section>
 
-									<section>
+									<section id="pkl_section">
 										<h2 class="major">Upload Pickle File</h2>
-										<form method="POST" enctype="multipart/form-data">
+										<form method="POST" action="#pkl_section" enctype="multipart/form-data">
 											{% csrf_token %}
 											<div class="fields">
 												<div class="field">
 													<input type="file" name="pkl">
-													<button type="submit">Upload File</button>
+													<button type="submit">Upload Pickle File</button>
 												</div>
 											</div>
 										</form>
-										
+									</section>
+
+									<section id="pkl_change_section">
 										{% if pkl_message %}
 											<p>{{ pkl_message }}</p>
 										{% endif %}
+										{% if pkl_message == 'File Uploaded' %}
+											<form method="post" action="#pkl_change_section" enctype="multipart/form-data">
+												{% csrf_token %}
+												<div class="fields">
+													<div class="field">
+														<h3>Provide all feature names separated by commas:</h3>
+														<p>For Example:<br>
+															Age, Estimated Salary</p>
+														<textarea name="pkl_features" rows="4" required></textarea>
+													</div>
+													<div class="field">
+														<h3>Provide the label values and their output:</h3>
+														<p>For Example:<br>
+														0 = The customer will not buy the product<br>
+														1 = The customer will buy the product</p>
+														<textarea name="pkl_label" rows="4" required></textarea>
+													</div>
+													<div class="field">
+														<h3>Upload a graph image:</h3>
+														<input type="file" name="graph_image" required>
+													</div>
+												</div>
+
+												<ul class="actions">
+													<li><input type="submit" name="pkl_change" value="Submit"/></li>
+												</ul>
+											</form>
+										{% endif %}
+
+										{% if pkl_change_message %}
+											<p>{{ pkl_change_message }}</p>
+										{% endif %}
 									</section>
 
-									<section>
+									<section id="csv_section">
 										<h2 class="major">OR Upload a CSV File</h2>
-										<form method="POST" enctype="multipart/form-data">
+										<form method="POST" action="#csv_section" enctype="multipart/form-data">
 											{% csrf_token %}
 											<div class="fields">
 												<div class="field">
 													<input type="file" name="csv">
-													<button type="submit">Upload File</button>
+													<button type="submit">Upload CSV File</button>
 												</div>
 											</div>
 										</form>
 									</section>
 
-									<section>
+									<section id="csv_change_section">
 										{% if csv_message %}
 											<p>{{ csv_message }}</p>
+										{% endif %}
+										{% if csv_message == 'File Uploaded' %}
 											<h3 class="major">Please provide all the hyper parameter values:</h3>
 											<form method="post" action="#footer">
 												{% csrf_token %}
@@ -136,20 +172,27 @@
 															<option value="brute">Brute</option>
 														</select>
 													</div>
-													<p>Please Provide the Features for Training:</p>
+													<h4>Provide the Features for Training:</h4>
 													{% for feature in features %}
 														<div class="col-12">
 															<input type="checkbox" id="{{ feature }}" name="training_features" value="{{ feature }}">
 															<label for="{{ feature }}">{{ feature }}</label>
 														</div>
 													{% endfor %}
-													<p>Please Provide the Label for Training:</p>
+													<h4>Provide the Label for Training:</h4>
 													{% for feature in features %}
 														<div class="col-12">
 															<input type="radio" id="{{ forloop.counter }}" name="training_label" value="{{ feature }}">
 															<label for="{{ forloop.counter }}">{{ feature }}</label>
 														</div>
 													{% endfor %}
+													<div class="col-12">
+														<h4>Provide the label values and their output:</h4>
+														<p>For Example:<br>
+														0 = The customer will not buy the product<br>
+														1 = The customer will buy the product</p>
+														<textarea name="label_output" rows="4" required></textarea>
+													</div>
 													<div class="col-12">
 														<ul class="actions">
 															<li><input type="submit" name="submit" value="Submit"/></li>
