@@ -126,43 +126,46 @@ class Classification(Algorithm):
                             'ds_desc': self.ds_desc}
         elif 'submit' in request.POST:
             self.submit_button = request.POST.get("submit")
-            n_neighbors = int(request.POST.get("neighbors"))
-            leaf_size = int(request.POST.get("leaf"))
-            weights = str(request.POST.get("weights"))
-            algorithm = str(request.POST.get("algorithm"))
-            training_features = list(request.POST.getlist("training_features"))
-            training_label = str(request.POST.get("training_label"))
-            label_output_temp = str(request.POST.get("label_output")).split("\r\n")
-            label_output = {}
-            for label in label_output_temp:
-                temp = label.split("=")
-                label_output[temp[0].strip()] = temp[1].strip()
-            image_file = request.FILES['csv_image']
-            image_data = image_file.read()
-            encoded_image = str(b64encode(image_data))[2:-1]
-            mime = str(image_file.content_type)
-            mime = mime + ';' if mime else ';'
-            graph_image = "data:%sbase64,%s" % (mime, encoded_image)
+            if request.FILES['csv_image'].content_type == 'image/png' or request.FILES['csv_image'].content_type == 'image/jpeg' or request.FILES['csv_image'].content_type == 'image/jpg':
+                n_neighbors = int(request.POST.get("neighbors"))
+                leaf_size = int(request.POST.get("leaf"))
+                weights = str(request.POST.get("weights"))
+                algorithm = str(request.POST.get("algorithm"))
+                training_features = list(request.POST.getlist("training_features"))
+                training_label = str(request.POST.get("training_label"))
+                label_output_temp = str(request.POST.get("label_output")).split("\r\n")
+                label_output = {}
+                for label in label_output_temp:
+                    temp = label.split("=")
+                    label_output[temp[0].strip()] = temp[1].strip()
+                image_file = request.FILES['csv_image']
+                image_data = image_file.read()
+                encoded_image = str(b64encode(image_data))[2:-1]
+                mime = str(image_file.content_type)
+                mime = mime + ';' if mime else ';'
+                graph_image = "data:%sbase64,%s" % (mime, encoded_image)
 
-            X = data.loc[:, training_features].values
-            y = data.loc[:, training_label].values
+                X = data.loc[:, training_features].values
+                y = data.loc[:, training_label].values
 
-            classifier = KNeighborsClassifier(n_neighbors=n_neighbors,
-                                              leaf_size=leaf_size,
-                                              weights=weights,
-                                              algorithm=algorithm)
-            classifier.fit(X, y)
-            y_pred = classifier.predict(X)
+                classifier = KNeighborsClassifier(n_neighbors=n_neighbors,
+                                                  leaf_size=leaf_size,
+                                                  weights=weights,
+                                                  algorithm=algorithm)
+                classifier.fit(X, y)
+                y_pred = classifier.predict(X)
 
-            pkl_obj = pickle.dumps(classifier)
-            mongo_data = {'pkl_data': Binary(pkl_obj), 'training_features': training_features,
-                          'training_label': label_output, 'graph_image': graph_image, 'upload_method': 'csv'}
-            try:
-                db_data.update_one({"name": "KNN"}, {"$set": mongo_data})
-                self.accuracy = round(accuracy_score(y, y_pred)*100, 2)
-                self.message = "Model Successfully Trained"
-            except:
-                self.message = "Unexpected error while training the model."
+                pkl_obj = pickle.dumps(classifier)
+                mongo_data = {'pkl_data': Binary(pkl_obj), 'training_features': training_features,
+                              'training_label': label_output, 'graph_image': graph_image, 'upload_method': 'csv'}
+                try:
+                    db_data.update_one({"name": "KNN"}, {"$set": mongo_data})
+                    self.accuracy = round(accuracy_score(y, y_pred)*100, 2)
+                    self.message = "Model Successfully Trained"
+                except:
+                    self.message = "Unexpected error while training the model."
+            else:
+                self.message = "Invalid Image Type"
 
             self.context = {'submitbutton': self.submit_button, 'pkl_message': self.pkl_message,
                             'csv_message': self.csv_message, 'accuracy': self.accuracy, 'message': self.message,

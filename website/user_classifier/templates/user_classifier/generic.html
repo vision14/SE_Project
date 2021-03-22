@@ -125,7 +125,9 @@
 							<div class="inner">
 								<h2 class="major">Result:</h2>
 								<p>{{ message }}</p>
-								<img src="{{ graph_image }}" alt="graph_image">
+								<input type="checkbox" name="my_checkbox" id="my_checkbox" value="True">
+								<label for="my_checkbox">Show Graph</label>
+								<img src="{{ graph_image }}" name="my_image" id="my_image" alt="graph_image">
 							</div>
 							{% endif %}
 

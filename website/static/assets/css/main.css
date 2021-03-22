@@ -4158,3 +4158,13 @@ input, select, textarea {
 		}
 
 	}
+
+	/* Custom CSS */
+
+	#my_image {
+	    display: none;
+	}
+
+	#my_checkbox:checked ~ #my_image {
+	    display: block;
+	}
