@@ -1,8 +1,5 @@
 from django.shortcuts import render
-from .forms import InputForm
 import pickle
-from django.conf import settings
-import os
 from django.views import View
 from pymongo import MongoClient
 import numpy as np
@@ -27,7 +24,6 @@ class Classification(Algorithm):
     template_name = 'user_classifier/generic.html'
     message = ""
     submit_button = None
-    graph_image = None
 
     def get(self, request):
 
@@ -40,24 +36,24 @@ class Classification(Algorithm):
     def post(self, request):
 
         data = db_data.find_one({'name': 'KNN'})
+        graph_image = data['graph_image']
         if data['upload_method'] == 'pkl':
             classifier = pickle.loads(pickle.loads(data['pkl_data']).read())
-            self.graph_image = data['graph_image']
-            # print(self.graph_image)
         else:
             classifier = pickle.loads(data['pkl_data'])
         if 'submit' in request.POST:
             self.submit_button = request.POST.get("submit")
+            output_message = data['training_label']
             user_inputs = np.array(request.POST.getlist('user_inputs')).astype(np.float64)
             preds = classifier.predict([user_inputs])
 
-            if preds == 0:
-                self.message = "No, the customer will not buy the product"
+            if str(preds[0]) in output_message:
+                self.message = output_message[str(preds[0])]
             else:
-                self.message = "Yes, the customer will buy the product"
+                self.message = "Unexpected error while predicting the output"
 
         context = {'algo_desc': data['algo_desc'], 'ds_desc': data['ds_desc'],
-                   'training_features': data['training_features'], 'graph_image': self.graph_image,
+                   'training_features': data['training_features'], 'graph_image': graph_image,
                    'message': self.message, 'submitbutton': self.submit_button}
 
         return render(request, self.template_name, context)

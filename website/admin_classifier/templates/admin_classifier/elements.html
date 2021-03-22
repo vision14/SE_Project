@@ -145,7 +145,7 @@
 										{% endif %}
 										{% if csv_message == 'File Uploaded' %}
 											<h3 class="major">Please provide all the hyper parameter values:</h3>
-											<form method="post" action="#footer">
+											<form method="post" action="#footer" enctype="multipart/form-data">
 												{% csrf_token %}
 												<div class="row gtr-uniform">
 													<div class="col-12">
@@ -194,6 +194,10 @@
 														<textarea name="label_output" rows="4" required></textarea>
 													</div>
 													<div class="col-12">
+														<h3>Upload a graph image:</h3>
+														<input type="file" name="csv_image" required>
+													</div>
+													<div class="col-12">
 														<ul class="actions">
 															<li><input type="submit" name="submit" value="Submit"/></li>
 														</ul>
@@ -204,7 +208,11 @@
 
 										{% if submitbutton == "Submit" %}
 											<h2 class="major">Result</h2>
-											<p> {{ message }} with {{ accuracy }}% Training Accuracy</p>
+											{% if message == "Model Successfully Trained" %}
+												<p> {{ message }} with {{ accuracy }}% Training Accuracy</p>
+											{% else %}
+												<p> {{ message }} </p>
+											{% endif %}
 										{% endif %}	
 									</section>
 

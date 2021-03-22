@@ -137,6 +137,12 @@ class Classification(Algorithm):
             for label in label_output_temp:
                 temp = label.split("=")
                 label_output[temp[0].strip()] = temp[1].strip()
+            image_file = request.FILES['csv_image']
+            image_data = image_file.read()
+            encoded_image = str(b64encode(image_data))[2:-1]
+            mime = str(image_file.content_type)
+            mime = mime + ';' if mime else ';'
+            graph_image = "data:%sbase64,%s" % (mime, encoded_image)
 
             X = data.loc[:, training_features].values
             y = data.loc[:, training_label].values
@@ -150,7 +156,7 @@ class Classification(Algorithm):
 
             pkl_obj = pickle.dumps(classifier)
             mongo_data = {'pkl_data': Binary(pkl_obj), 'training_features': training_features,
-                          'training_label': label_output, 'upload_method': 'csv'}
+                          'training_label': label_output, 'graph_image': graph_image, 'upload_method': 'csv'}
             try:
                 db_data.update_one({"name": "KNN"}, {"$set": mongo_data})
                 self.accuracy = round(accuracy_score(y, y_pred)*100, 2)
