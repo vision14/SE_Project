@@ -21,7 +21,7 @@ class Algorithm(View):
 
 class Classification(Algorithm):
 
-    template_name = 'user_classifier/generic.html'
+    template_name = 'user_classifier/classification.html'
     message = ""
     submit_button = None
 
