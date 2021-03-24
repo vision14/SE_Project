@@ -3,7 +3,7 @@
 <!DOCTYPE HTML>
 <html>
 	<head>
-		<title>LearnML - Classification</title>
+		<title>LearnML - Clustering</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<link rel="stylesheet" href="{% static 'assets/css/main.css' %}" />
@@ -41,8 +41,8 @@
 					<section id="wrapper">
 						<header>
 							<div class="inner">
-								<h2>Classification</h2>
-								<p>Classification is the process of predicting the class of given data points. Classes are sometimes called as targets/ labels or categories. Classification predictive modeling is the task of approximating a mapping function (f) from input variables (X) to discrete output variables (y). <a href="https://towardsdatascience.com/machine-learning-classifiers-a5cc4e1b0623">Learn More</a></p>
+								<h2>Clustering</h2>
+								<p>In basic terms, the objective of clustering is to find different groups within the elements in the data. To do so, clustering algorithms find the structure in the data so that elements of the same cluster (or group) are more similar to each other than to those from different clusters. <a href="https://towardsdatascience.com/unsupervised-machine-learning-clustering-analysis-d40f2b34ae7e">Learn More</a></p>
 							</div>
 						</header>
 
@@ -61,36 +61,36 @@
 											<table class="alt">
 												<thead>
 													<tr>
-														<th>Number</th>
-														<th>Age</th>
-														<th>Salary</th>
-														<th>Purchased?</th>
+														<th>CustomerID</th>
+														<th>Anual Income (In k$)</th>
+														<th>Spending Score (0-100)</th>
 													</tr>
 												</thead>
 												<tbody>
 													<tr>
 														<td>1</td>
-														<td>18</td>
-														<td>82000</td>
-														<td>No</td>
+														<td>15</td>
+														<td>35</td>
 													</tr>
 													<tr>
 														<td>2</td>
-														<td>29</td>
-														<td>80000</td>
-														<td>No</td>
+														<td>16</td>
+														<td>77</td>
 													</tr>
 													<tr>
 														<td>3</td>
-														<td>47</td>
-														<td>25000</td>
-														<td>Yes</td>
+														<td>43</td>
+														<td>48</td>
 													</tr>
 													<tr>
 														<td>4</td>
-														<td>45</td>
-														<td>26000</td>
-														<td>Yes</td>
+														<td>80</td>
+														<td>12</td>
+													</tr>
+													<tr>
+														<td>5</td>
+														<td>72</td>
+														<td>85</td>
 													</tr>
 												</tbody>
 											</table>
@@ -105,7 +105,7 @@
 					<section id="footer">
 						<div class="inner">
 							<h2 class="major">Test Your Own Values</h2>
-							<p>Test the mentioned classification model by providing values in the following input fields. Note: Make sure that the provided values are in the numerical form and each field has been provided before submitting the button.</p>
+							<p>Test the mentioned clustering model by providing values in the following input fields. Note: Make sure that the provided values are in the numerical form and each field has been provided before submitting the button.</p>
 							<form method="post" action="#footer">
 								{% csrf_token %}
 								<div class="fields">

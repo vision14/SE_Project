@@ -6,7 +6,7 @@ from django.conf import settings
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('user_classifier.urls')),
-    path('admin_classifier/', include('admin_classifier.urls'))
+    path('admin_access/', include('admin_classifier.urls'))
 ]
 
 if settings.DEBUG:

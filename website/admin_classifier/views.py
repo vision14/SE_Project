@@ -10,6 +10,8 @@ from base64 import b64encode
 from . import mongodb as mdb
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
+from sklearn.cluster import KMeans
+from .my_decorator import AdminStaffRequiredMixin
 
 data = pd.DataFrame({})
 db_data = mdb.access()
@@ -42,18 +44,18 @@ class Algorithm(View):
         return pkl_message
 
     @staticmethod
-    def pkl_change(pkl_features_temp, pkl_label_temp, algo_name):
+    def pkl_change(pkl_features_temp, algo_name, pkl_label_notes_temp=None):
         pkl_features = []
         for feature in pkl_features_temp:
             pkl_features.append(feature.strip())
-        if algo_name == "KNN":
-            pkl_label = {}
-            for label in pkl_label_temp:
+        if algo_name != "MLR":
+            pkl_label_notes = {}
+            for label in pkl_label_notes_temp:
                 temp = label.split("=")
-                pkl_label[temp[0].strip()] = temp[1].strip()
+                pkl_label_notes[temp[0].strip()] = temp[1].strip()
+            mongo_data = {'label_notes': pkl_label_notes, 'training_features': pkl_features}
         else:
-            pkl_label = pkl_label_temp
-        mongo_data = {'training_label': pkl_label, 'training_features': pkl_features}
+            mongo_data = {'training_features': pkl_features}
         pkl_change_message = mdb.update(db_data, algo_name, mongo_data, "Success", "Error")
         return pkl_change_message
 
@@ -85,7 +87,7 @@ class Algorithm(View):
         return feature_list, csv_message
 
 
-class Classification(Algorithm):
+class Classification(AdminStaffRequiredMixin, Algorithm):
 
     template_name = 'admin_classifier/classification.html'
     context = {}
@@ -102,7 +104,6 @@ class Classification(Algorithm):
 
     def get(self, request):
 
-        global db_data
         descriptions = mdb.find(db_data, "KNN")
         self.algo_desc = descriptions['algo_desc']
         self.ds_desc = descriptions['ds_desc']
@@ -111,7 +112,7 @@ class Classification(Algorithm):
 
     def post(self, request):
 
-        global data, db_data
+        global data
         descriptions = mdb.find(db_data, "KNN")
         self.algo_desc = descriptions['algo_desc']
         self.ds_desc = descriptions['ds_desc']
@@ -129,9 +130,9 @@ class Classification(Algorithm):
                             'ds_desc': self.ds_desc}
         elif 'pkl_change' in request.POST:
             pkl_features_temp = str(request.POST.get('pkl_features')).split(',')
-            pkl_label_temp = str(request.POST.get("pkl_label")).split("\r\n")
+            pkl_label_notes_temp = str(request.POST.get("pkl_label_notes")).split("\r\n")
             image_file = request.FILES['graph_image']
-            pkl_change_message_temp = Algorithm.pkl_change(pkl_features_temp, pkl_label_temp, "KNN")
+            pkl_change_message_temp = Algorithm.pkl_change(pkl_features_temp, "KNN", pkl_label_notes_temp)
             graph_message = Algorithm.graph_upload(image_file, "KNN")
             if pkl_change_message_temp == "Success" and graph_message == "Success":
                 self.pkl_change_message = "Changes Saved Successfully"
@@ -158,11 +159,11 @@ class Classification(Algorithm):
                 algorithm = str(request.POST.get("algorithm"))
                 training_features = list(request.POST.getlist("training_features"))
                 training_label = str(request.POST.get("training_label"))
-                label_output_temp = str(request.POST.get("label_output")).split("\r\n")
-                label_output = {}
-                for label in label_output_temp:
+                csv_label_notes_temp = str(request.POST.get("csv_label_notes")).split("\r\n")
+                csv_label_notes = {}
+                for label in csv_label_notes_temp:
                     temp = label.split("=")
-                    label_output[temp[0].strip()] = temp[1].strip()
+                    csv_label_notes[temp[0].strip()] = temp[1].strip()
 
                 X = data.loc[:, training_features].values
                 y = data.loc[:, training_label].values
@@ -176,7 +177,7 @@ class Classification(Algorithm):
                     self.accuracy = round(accuracy_score(y, y_pred) * 100, 2)
                     pkl_obj = pickle.dumps(classifier)
                     mongo_data = {'pkl_data': Binary(pkl_obj), 'training_features': training_features,
-                                  'training_label': label_output, 'upload_method': 'csv'}
+                                  'label_notes': csv_label_notes, 'upload_method': 'csv'}
                     self.message = mdb.update(db_data, "KNN", mongo_data, "Model Successfully Trained",
                                               "Unexpected error while training the model")
                 except:
@@ -191,7 +192,7 @@ class Classification(Algorithm):
         return render(request, self.template_name, self.context)
 
 
-class Regression(Algorithm):
+class Regression(AdminStaffRequiredMixin, Algorithm):
 
     template_name = 'admin_classifier/regression.html'
     context = {}
@@ -208,7 +209,6 @@ class Regression(Algorithm):
 
     def get(self, request):
 
-        global db_data
         descriptions = mdb.find(db_data, "MLR")
         self.algo_desc = descriptions['algo_desc']
         self.ds_desc = descriptions['ds_desc']
@@ -217,7 +217,7 @@ class Regression(Algorithm):
 
     def post(self, request):
 
-        global data, db_data
+        global data
         descriptions = mdb.find(db_data, "MLR")
         self.algo_desc = descriptions['algo_desc']
         self.ds_desc = descriptions['ds_desc']
@@ -235,9 +235,8 @@ class Regression(Algorithm):
                             'ds_desc': self.ds_desc}
         elif 'pkl_change' in request.POST:
             pkl_features_temp = str(request.POST.get('pkl_features')).split(',')
-            pkl_label_temp = str(request.POST.get("pkl_label"))
             image_file = request.FILES['graph_image']
-            pkl_change_message_temp = Algorithm.pkl_change(pkl_features_temp, pkl_label_temp, "MLR")
+            pkl_change_message_temp = Algorithm.pkl_change(pkl_features_temp, "MLR")
             graph_message = Algorithm.graph_upload(image_file, "MLR")
             if pkl_change_message_temp == "Success" and graph_message == "Success":
                 self.pkl_change_message = "Changes Saved Successfully"
@@ -256,7 +255,7 @@ class Regression(Algorithm):
         elif 'submit' in request.POST:
             self.submit_button = request.POST.get("submit")
             image_file = request.FILES['csv_image']
-            graph_message = Algorithm.graph_upload(image_file, "KNN")
+            graph_message = Algorithm.graph_upload(image_file, "MLR")
             if graph_message == "Success":
                 fit_intercept = str(request.POST.get("fit_intercept"))
                 fit_intercept = True if fit_intercept == "True" else False
@@ -287,4 +286,113 @@ class Regression(Algorithm):
                             'csv_message': self.csv_message, 'mse': self.mse, 'message': self.message,
                             'algo_desc': self.algo_desc, 'ds_desc': self.ds_desc}
 
+        return render(request, self.template_name, self.context)
+
+
+class Clustering(AdminStaffRequiredMixin, Algorithm):
+
+    template_name = 'admin_classifier/clustering.html'
+    context = {}
+    feature_list = []
+    submit_button = None
+    message = None
+    pkl_message = None
+    pkl_change_message = None
+    csv_message = None
+    update_message = None
+    algo_desc = None
+    ds_desc = None
+
+    def get(self, request):
+
+        descriptions = mdb.find(db_data, "KM")
+        self.algo_desc = descriptions['algo_desc']
+        self.ds_desc = descriptions['ds_desc']
+        self.context = {'algo_desc': self.algo_desc, 'ds_desc': self.ds_desc}
+        return render(request, self.template_name, self.context)
+
+    def post(self, request):
+
+        global data
+        descriptions = mdb.find(db_data, "KM")
+        self.algo_desc = descriptions['algo_desc']
+        self.ds_desc = descriptions['ds_desc']
+
+        if 'update' in request.POST:
+            self.algo_desc = request.POST.get('algo_desc')
+            self.ds_desc = request.POST.get('ds_desc')
+            self.update_message = Algorithm.description_update(self.algo_desc, self.ds_desc, 'KM')
+            self.context = {'update_message': self.update_message, 'algo_desc': self.algo_desc,
+                            'ds_desc': self.ds_desc}
+        elif 'pkl' in request.FILES:
+            upload_file = request.FILES['pkl']
+            self.pkl_message = Algorithm.pkl_upload(upload_file, 'KM')
+            self.context = {'pkl_message': self.pkl_message, 'algo_desc': self.algo_desc,
+                            'ds_desc': self.ds_desc}
+        elif 'pkl_change' in request.POST:
+            pkl_features_temp = str(request.POST.get('pkl_features')).split(',')
+            pkl_label_notes_temp = str(request.POST.get("pkl_label_notes")).split("\r\n")
+            image_file = request.FILES['graph_image']
+            pkl_change_message_temp = Algorithm.pkl_change(pkl_features_temp, "KM", pkl_label_notes_temp)
+            graph_message = Algorithm.graph_upload(image_file, "KM")
+            if pkl_change_message_temp == "Success" and graph_message == "Success":
+                self.pkl_change_message = "Changes Saved Successfully"
+            else:
+                if graph_message != "Success":
+                    self.pkl_change_message = "Invalid Image Type"
+                else:
+                    self.pkl_change_message = "Unexpected error while saving pickle changes"
+            self.context = {'pkl_change_message': self.pkl_change_message, 'algo_desc': self.algo_desc,
+                            'ds_desc': self.ds_desc}
+        elif 'csv' in request.FILES:
+            upload_file = request.FILES['csv']
+            self.feature_list, self.csv_message = Algorithm.csv_upload(upload_file)
+            self.context = {'csv_message': self.csv_message, 'features': self.feature_list, 'algo_desc': self.algo_desc,
+                            'ds_desc': self.ds_desc}
+        elif 'submit' in request.POST:
+            self.submit_button = request.POST.get("submit")
+            image_file = request.FILES['csv_image']
+            graph_message = Algorithm.graph_upload(image_file, "KM")
+            if graph_message == "Success":
+                n_clusters = int(request.POST.get("n_clusters"))
+                init = str(request.POST.get("init"))
+                n_init = int(request.POST.get("n_init"))
+                max_iter = int(request.POST.get("max_iter"))
+                training_features = list(request.POST.getlist("training_features"))
+
+                X = data.loc[:, training_features].values
+                kmeans = KMeans(n_clusters=n_clusters, init=init, n_init=n_init, max_iter=max_iter)
+                try:
+                    kmeans.fit(X)
+                    csv_label_notes_temp = str(request.POST.get("csv_label_notes")).split("\r\n")
+                    csv_label_notes = {}
+                    for label in csv_label_notes_temp:
+                        temp = label.split("=")
+                        values = (temp[0].strip()).split(",")
+                        values = list(map(int, values))
+                        key = kmeans.predict([values])[0]
+                        csv_label_notes[str(key)] = temp[1].strip()
+                    pkl_obj = pickle.dumps(kmeans)
+                    mongo_data = {'pkl_data': Binary(pkl_obj), 'training_features': training_features,
+                                  'label_notes': csv_label_notes, 'upload_method': 'csv'}
+                    self.message = mdb.update(db_data, "KM", mongo_data, "Model Successfully Trained",
+                                              "Unexpected error while training the model")
+                except:
+                    self.message = "Unexpected error while training the model"
+            else:
+                self.message = "Invalid Image Type"
+
+            self.context = {'submitbutton': self.submit_button, 'pkl_message': self.pkl_message,
+                            'csv_message': self.csv_message, 'message': self.message,
+                            'algo_desc': self.algo_desc, 'ds_desc': self.ds_desc}
+
+        return render(request, self.template_name, self.context)
+
+
+class Home(AdminStaffRequiredMixin, View):
+
+    template_name = 'admin_classifier/home.html'
+    context = {}
+
+    def get(self, request):
         return render(request, self.template_name, self.context)

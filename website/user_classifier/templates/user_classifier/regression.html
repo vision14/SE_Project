@@ -3,7 +3,7 @@
 <!DOCTYPE HTML>
 <html>
 	<head>
-		<title>Generic - Solid State by HTML5 UP</title>
+		<title>LearnML - Regression</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<link rel="stylesheet" href="{% static 'assets/css/main.css' %}" />
@@ -16,7 +16,7 @@
 
 				<!-- Header -->
 					<header id="header">
-						<h1><a href="{% url 'user_home' %}">LearnML</a></h1>
+						<h1><a href="{% url 'learner_home' %}">LearnML</a></h1>
 						<nav>
 							<a href="#menu">Menu</a>
 						</nav>
@@ -25,13 +25,13 @@
 				<!-- Menu -->
 					<nav id="menu">
 						<div class="inner">
-							<h2>Menu</h2>
+							<h2>Hello, {{ request.user }}</h2>
 							<ul class="links">
-								<li><a href="index.html">Home</a></li>
-								<li><a href="generic.html">Generic</a></li>
-								<li><a href="elements.html">Elements</a></li>
-								<li><a href="#">Log In</a></li>
-								<li><a href="#">Sign Up</a></li>
+								<li><a href="{% url 'learner_home' %}">Home</a></li>
+								<li><a href="{% url 'learner_classification' %}">Classification</a></li>
+								<li><a href="{% url 'learner_regression' %}">Regression</a></li>
+								<li><a href="{% url 'learner_clustering' %}">Clustering</a></li>
+								<li><a href="{% url 'logout' %}">Log Out</a></li>
 							</ul>
 							<a href="#" class="close">Close</a>
 						</div>
@@ -42,7 +42,7 @@
 						<header>
 							<div class="inner">
 								<h2>Regression</h2>
-								<p>In statistical modeling, regression analysis is a set of statistical processes for estimating the relationships between a dependent variable (often called the 'outcome variable') and one or more independent variables (often called 'predictors', 'covariates', or 'features').<a href="https://towardsdatascience.com/introduction-to-regression-analysis-9151d8ac14b3">Learn More</a></p>
+								<p>In statistical modeling, regression analysis is a set of statistical processes for estimating the relationships between a dependent variable (often called the 'outcome variable') and one or more independent variables (often called 'predictors', 'covariates', or 'features'). <a href="https://towardsdatascience.com/introduction-to-regression-analysis-9151d8ac14b3">Learn More</a></p>
 							</div>
 						</header>
 
@@ -61,36 +61,36 @@
 											<table class="alt">
 												<thead>
 													<tr>
-														<th>Number</th>
-														<th>Age</th>
-														<th>Salary</th>
-														<th>Purchased?</th>
+														<th>R&D Spend</th>
+														<th>Administration</th>
+														<th>Marketing Spend</th>
+														<th>Profit</th>
 													</tr>
 												</thead>
 												<tbody>
 													<tr>
-														<td>1</td>
-														<td>18</td>
-														<td>82000</td>
-														<td>No</td>
+														<td>165349.2</td>
+														<td>136897.8</td>
+														<td>471784.1</td>
+														<td>192261.83</td>
 													</tr>
 													<tr>
-														<td>2</td>
-														<td>29</td>
-														<td>80000</td>
-														<td>No</td>
+														<td>162597.7</td>
+														<td>151377.59</td>
+														<td>443898.53</td>
+														<td>191792.06</td>
 													</tr>
 													<tr>
-														<td>3</td>
-														<td>47</td>
-														<td>25000</td>
-														<td>Yes</td>
+														<td>142107.34</td>
+														<td>91391.77</td>
+														<td>366168.42</td>
+														<td>166187.94</td>
 													</tr>
 													<tr>
-														<td>4</td>
-														<td>45</td>
-														<td>26000</td>
-														<td>Yes</td>
+														<td>100671.96</td>
+														<td>91790.61</td>
+														<td>249744.55</td>
+														<td>144259.4</td>
 													</tr>
 												</tbody>
 											</table>
@@ -105,7 +105,7 @@
 					<section id="footer">
 						<div class="inner">
 							<h2 class="major">Test Your Own Values</h2>
-							<p>Test the mentioned classification model by providing values in the following input fields. Note: Make sure that the provided values are in the numerical form and each field has been provided before submitting the button.</p>
+							<p>Test the mentioned regression model by providing values in the following input fields. Note: Make sure that the provided values are in the numerical form and each field has been provided before submitting the button.</p>
 							<form method="post" action="#footer">
 								{% csrf_token %}
 								<div class="fields">

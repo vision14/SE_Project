@@ -3,7 +3,7 @@
 <!DOCTYPE HTML>
 <html>
 	<head>
-		<title>Elements - Solid State by HTML5 UP</title>
+		<title>LearnML - Classification</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<link rel="stylesheet" href="{% static 'assets/css/main.css' %}" />
@@ -16,7 +16,7 @@
 
 				<!-- Header -->
 					<header id="header">
-						<h1><a href="{% url 'user_home' %}">LearnML</a></h1>
+						<h1><a href="{% url 'admin_home' %}">LearnML</a></h1>
 						<nav>
 							<a href="#menu">Menu</a>
 						</nav>
@@ -27,11 +27,11 @@
 						<div class="inner">
 							<h2>Menu</h2>
 							<ul class="links">
-								<li><a href="index.html">Home</a></li>
-								<li><a href="generic.html">Generic</a></li>
-								<li><a href="elements.html">Elements</a></li>
-								<li><a href="#">Log In</a></li>
-								<li><a href="#">Sign Up</a></li>
+								<li><a href="{% url 'admin_home' %}">Home</a></li>
+								<li><a href="{% url 'admin_classification' %}">Classification</a></li>
+								<li><a href="{% url 'admin_regression' %}">Regression</a></li>
+								<li><a href="{% url 'admin_clustering' %}">Clustering</a></li>
+								<li><a href="#">Log Out</a></li>
 							</ul>
 							<a href="#" class="close">Close</a>
 						</div>
@@ -107,7 +107,7 @@
 														<p>For Example:<br>
 														0 = The customer will not buy the product<br>
 														1 = The customer will buy the product</p>
-														<textarea name="pkl_label" rows="4" required></textarea>
+														<textarea name="pkl_label_notes" rows="4" required></textarea>
 													</div>
 													<div class="field">
 														<h3>Upload a graph image:</h3>
@@ -191,7 +191,7 @@
 														<p>For Example:<br>
 														0 = The customer will not buy the product<br>
 														1 = The customer will buy the product</p>
-														<textarea name="label_output" rows="4" required></textarea>
+														<textarea name="csv_label_notes" rows="4" required></textarea>
 													</div>
 													<div class="col-12">
 														<h3>Upload a graph image:</h3>

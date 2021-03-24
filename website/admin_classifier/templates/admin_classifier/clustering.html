@@ -3,7 +3,7 @@
 <!DOCTYPE HTML>
 <html>
 	<head>
-		<title>LearnML - Regression</title>
+		<title>LearnML - Clustering</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<link rel="stylesheet" href="{% static 'assets/css/main.css' %}" />
@@ -41,8 +41,8 @@
 					<section id="wrapper">
 						<header>
 							<div class="inner">
-								<h2>Regression</h2>
-								<p>In statistical modeling, regression analysis is a set of statistical processes for estimating the relationships between a dependent variable (often called the 'outcome variable') and one or more independent variables (often called 'predictors', 'covariates', or 'features').<a href="https://towardsdatascience.com/introduction-to-regression-analysis-9151d8ac14b3">Learn More</a></p>
+								<h2>Clustering</h2>
+								<p>In basic terms, the objective of clustering is to find different groups within the elements in the data. To do so, clustering algorithms find the structure in the data so that elements of the same cluster (or group) are more similar to each other than to those from different clusters. <a href="https://towardsdatascience.com/unsupervised-machine-learning-clustering-analysis-d40f2b34ae7e">Learn More</a></p>
 							</div>
 						</header>
 
@@ -103,6 +103,17 @@
 														<textarea name="pkl_features" rows="4" required></textarea>
 													</div>
 													<div class="field">
+														<h3>Provide the label values and their output:</h3>
+														<p>For Example:<br>
+														0 = Standard Customer<br>
+														1 = Careless Customer<br>
+														3 = Sensible Customer<br>
+														2 = Target Customer<br>
+														4 = Careful Customer<br>
+														</p>
+														<textarea name="pkl_label_notes" rows="4" required></textarea>
+													</div>
+													<div class="field">
 														<h3>Upload a graph image:</h3>
 														<input type="file" name="graph_image" required>
 													</div>
@@ -142,18 +153,23 @@
 												{% csrf_token %}
 												<div class="row gtr-uniform">
 													<div class="col-12">
-														<label for="fit_intercept">Fit Intercept:</label>
-														<select id="fit_intercept" name="fit_intercept">
-															<option value="True">True</option>
-															<option value="False">False</option>
+														<label for="n_clusters">Number of Clusters: </label>
+														<input type="number" id="n_clusters" name="n_clusters">
+													</div>
+													<div class="col-12">
+														<label for="init">Init:</label>
+														<select id="init" name="init">
+															<option value="k-means++">k-means++</option>
+															<option value="random">random</option>
 														</select>
 													</div>
 													<div class="col-12">
-														<label for="normalize">Normalize:</label>
-														<select id="normalize" name="normalize">
-															<option value="True">True</option>
-															<option value="False">False</option>
-														</select>
+														<label for="n_init">N Init:</label>
+														<input type="number" id="n_init" name="n_init">
+													</div>
+													<div class="col-12">
+														<label for="max_iter">Max Iter:</label>
+														<input type="number" id="max_iter" name="max_iter">
 													</div>
 													<h4>Provide the Features for Training:</h4>
 													{% for feature in features %}
@@ -162,13 +178,16 @@
 															<label for="{{ feature }}">{{ feature }}</label>
 														</div>
 													{% endfor %}
-													<h4>Provide the Label for Training:</h4>
-													{% for feature in features %}
-														<div class="col-12">
-															<input type="radio" id="{{ forloop.counter }}" name="training_label" value="{{ feature }}">
-															<label for="{{ forloop.counter }}">{{ feature }}</label>
-														</div>
-													{% endfor %}
+													<div class="col-12">
+														<h4>Provide the label value samples and their output:</h4>
+														<p>For Example:<br>
+														75,75 = Target Customer<br>
+														75,10 = Careful Customer<br>
+														10,75 = Careless Customer<br>
+														50,50 = Standard Customer<br>
+														10,10 = Sensible Customer</p>
+														<textarea name="csv_label_notes" rows="4" required></textarea>
+													</div>
 													<div class="col-12">
 														<h3>Upload a graph image:</h3>
 														<input type="file" name="csv_image" required>
@@ -184,9 +203,7 @@
 
 										{% if submitbutton == "Submit" %}
 											<h2 class="major">Result</h2>
-											{% if message == "Model Successfully Trained" %}
-												<p> {{ message }} with {{ mse }} Mean-Squared Error</p>
-											{% else %}
+											{% if message %}
 												<p> {{ message }} </p>
 											{% endif %}
 										{% endif %}	

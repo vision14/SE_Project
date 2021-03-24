@@ -1,7 +1,8 @@
-from django import forms
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
 
 
-# creating a form
-class InputForm(forms.Form):
-    age = forms.IntegerField(help_text="Enter age of the customer")
-    salary = forms.IntegerField(help_text="Enter salary of the customer")
+class CreateUserForm(UserCreationForm):
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'password1', 'password2']
