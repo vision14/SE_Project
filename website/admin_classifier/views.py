@@ -12,11 +12,13 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
 from sklearn.cluster import KMeans
 from .my_decorator import AdminStaffRequiredMixin
+from abc import ABC, abstractmethod
 
 data = pd.DataFrame({})
 db_data = mdb.access()
 
 
+# Simple Factory Pattern Starts:
 class Algorithm(View):
 
     def get(self, request):
@@ -121,6 +123,9 @@ class Classification(AdminStaffRequiredMixin, Algorithm):
             self.algo_desc = request.POST.get('algo_desc')
             self.ds_desc = request.POST.get('ds_desc')
             self.update_message = Algorithm.description_update(self.algo_desc, self.ds_desc, 'KNN')
+            op_data = mdb.find(db_data, 'OP')
+            subject_obj = ConcreteSubject(op_data['observer_list'], op_data['update_message_list'])
+            subject_obj.notify("Classification Description")
             self.context = {'update_message': self.update_message, 'algo_desc': self.algo_desc,
                             'ds_desc': self.ds_desc}
         elif 'pkl' in request.FILES:
@@ -135,6 +140,9 @@ class Classification(AdminStaffRequiredMixin, Algorithm):
             pkl_change_message_temp = Algorithm.pkl_change(pkl_features_temp, "KNN", pkl_label_notes_temp)
             graph_message = Algorithm.graph_upload(image_file, "KNN")
             if pkl_change_message_temp == "Success" and graph_message == "Success":
+                op_data = mdb.find(db_data, 'OP')
+                subject_obj = ConcreteSubject(op_data['observer_list'], op_data['update_message_list'])
+                subject_obj.notify("Classification Pickle File")
                 self.pkl_change_message = "Changes Saved Successfully"
             else:
                 if graph_message != "Success":
@@ -180,6 +188,9 @@ class Classification(AdminStaffRequiredMixin, Algorithm):
                                   'label_notes': csv_label_notes, 'upload_method': 'csv'}
                     self.message = mdb.update(db_data, "KNN", mongo_data, "Model Successfully Trained",
                                               "Unexpected error while training the model")
+                    op_data = mdb.find(db_data, 'OP')
+                    subject_obj = ConcreteSubject(op_data['observer_list'], op_data['update_message_list'])
+                    subject_obj.notify("Classification CSV File")
                 except:
                     self.message = "Unexpected error while training the model"
             else:
@@ -226,6 +237,9 @@ class Regression(AdminStaffRequiredMixin, Algorithm):
             self.algo_desc = request.POST.get('algo_desc')
             self.ds_desc = request.POST.get('ds_desc')
             self.update_message = Algorithm.description_update(self.algo_desc, self.ds_desc, 'MLR')
+            op_data = mdb.find(db_data, 'OP')
+            subject_obj = ConcreteSubject(op_data['observer_list'], op_data['update_message_list'])
+            subject_obj.notify("Regression Description")
             self.context = {'update_message': self.update_message, 'algo_desc': self.algo_desc,
                             'ds_desc': self.ds_desc}
         elif 'pkl' in request.FILES:
@@ -239,6 +253,9 @@ class Regression(AdminStaffRequiredMixin, Algorithm):
             pkl_change_message_temp = Algorithm.pkl_change(pkl_features_temp, "MLR")
             graph_message = Algorithm.graph_upload(image_file, "MLR")
             if pkl_change_message_temp == "Success" and graph_message == "Success":
+                op_data = mdb.find(db_data, 'OP')
+                subject_obj = ConcreteSubject(op_data['observer_list'], op_data['update_message_list'])
+                subject_obj.notify("Regression Pickle File")
                 self.pkl_change_message = "Changes Saved Successfully"
             else:
                 if graph_message != "Success":
@@ -277,6 +294,9 @@ class Regression(AdminStaffRequiredMixin, Algorithm):
                                   'upload_method': 'csv'}
                     self.message = mdb.update(db_data, "MLR", mongo_data, "Model Successfully Trained",
                                               "Unexpected error while training the model")
+                    op_data = mdb.find(db_data, 'OP')
+                    subject_obj = ConcreteSubject(op_data['observer_list'], op_data['update_message_list'])
+                    subject_obj.notify("Regression CSV File")
                 except:
                     self.message = "Unexpected error while training the model"
             else:
@@ -322,6 +342,9 @@ class Clustering(AdminStaffRequiredMixin, Algorithm):
             self.algo_desc = request.POST.get('algo_desc')
             self.ds_desc = request.POST.get('ds_desc')
             self.update_message = Algorithm.description_update(self.algo_desc, self.ds_desc, 'KM')
+            op_data = mdb.find(db_data, 'OP')
+            subject_obj = ConcreteSubject(op_data['observer_list'], op_data['update_message_list'])
+            subject_obj.notify("Clustering Description")
             self.context = {'update_message': self.update_message, 'algo_desc': self.algo_desc,
                             'ds_desc': self.ds_desc}
         elif 'pkl' in request.FILES:
@@ -336,6 +359,9 @@ class Clustering(AdminStaffRequiredMixin, Algorithm):
             pkl_change_message_temp = Algorithm.pkl_change(pkl_features_temp, "KM", pkl_label_notes_temp)
             graph_message = Algorithm.graph_upload(image_file, "KM")
             if pkl_change_message_temp == "Success" and graph_message == "Success":
+                op_data = mdb.find(db_data, 'OP')
+                subject_obj = ConcreteSubject(op_data['observer_list'], op_data['update_message_list'])
+                subject_obj.notify("Clustering Pickle File")
                 self.pkl_change_message = "Changes Saved Successfully"
             else:
                 if graph_message != "Success":
@@ -377,6 +403,9 @@ class Clustering(AdminStaffRequiredMixin, Algorithm):
                                   'label_notes': csv_label_notes, 'upload_method': 'csv'}
                     self.message = mdb.update(db_data, "KM", mongo_data, "Model Successfully Trained",
                                               "Unexpected error while training the model")
+                    op_data = mdb.find(db_data, 'OP')
+                    subject_obj = ConcreteSubject(op_data['observer_list'], op_data['update_message_list'])
+                    subject_obj.notify("Clustering CSV File")
                 except:
                     self.message = "Unexpected error while training the model"
             else:
@@ -387,8 +416,10 @@ class Clustering(AdminStaffRequiredMixin, Algorithm):
                             'algo_desc': self.algo_desc, 'ds_desc': self.ds_desc}
 
         return render(request, self.template_name, self.context)
+# Simple Factory Pattern Ends
 
 
+# Home Module Starts
 class Home(AdminStaffRequiredMixin, View):
 
     template_name = 'admin_classifier/home.html'
@@ -396,3 +427,63 @@ class Home(AdminStaffRequiredMixin, View):
 
     def get(self, request):
         return render(request, self.template_name, self.context)
+# Home Module Ends
+
+
+# Observer Pattern Starts
+class Subject(ABC):
+
+    @abstractmethod
+    def subscribe(self, learner):
+        pass
+
+    @abstractmethod
+    def unsubscribe(self, learner):
+        pass
+
+    @abstractmethod
+    def notify(self, update):
+        pass
+
+
+class ConcreteSubject(Subject):
+
+    def __init__(self, learners, messages):
+
+        self._learners = learners
+        self._messages = messages
+
+    def subscribe(self, learner):
+
+        self._learners.append(learner)
+        mongo_data = {'observer_list': self._learners}
+        temp = mdb.update(db_data, "OP", mongo_data, "Success", "Error")
+
+    def unsubscribe(self, learner):
+
+        self._learners.remove(learner)
+        mongo_data = {'observer_list': self._learners}
+        temp = mdb.update(db_data, "OP", mongo_data, "Success", "Error")
+
+    def notify(self, update):
+
+        self._messages.insert(0, "Admin Has Updated The " + str(update))
+        if len(self._messages) > 5:
+            temp = self._messages.pop()
+        mongo_data = {'update_message_list': self._messages}
+        temp = mdb.update(db_data, "OP", mongo_data, "Success", "Error")
+
+
+class Learner(ABC):
+
+    @abstractmethod
+    def update(self):
+        pass
+
+
+class ConcreteLearner(Learner):
+
+    def update(self):
+        mongo_data = mdb.find(db_data, "OP")
+        return mongo_data
+# Observer Pattern Ends

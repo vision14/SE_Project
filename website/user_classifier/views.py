@@ -9,11 +9,13 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.contrib.auth.models import Group
+from admin_classifier.views import ConcreteSubject, ConcreteLearner
 
 # Create your views here.
 db_data = mdb.access()
 
 
+# Algorithm Module Starts
 class Algorithm(View):
 
     def get(self, request):
@@ -140,8 +142,10 @@ class Clustering(Algorithm):
                    'message': self.message, 'submitbutton': self.submit_button}
 
         return render(request, self.template_name, context)
+# Algorithm Module Ends
 
 
+# Home and Login Module Starts
 @method_decorator(login_required, name='dispatch')
 class Home(View):
 
@@ -149,6 +153,37 @@ class Home(View):
     context = {}
 
     def get(self, request):
+        username = str(request.user)
+        learner = ConcreteLearner()
+        mongo_data = learner.update()
+        len_update_messages_list = len(mongo_data['update_message_list'])
+        temp = "\n".join(mongo_data['update_message_list'])
+        update_messages_list = [temp]
+        observer_list = mongo_data['observer_list']
+        self.context = {'username': str(username),
+                        'observer_list': observer_list,
+                        'update_messages_list': update_messages_list,
+                        'len_update_messages_list': len_update_messages_list}
+        return render(request, self.template_name, self.context)
+
+    def post(self, request):
+        username = str(request.user)
+        learner = ConcreteLearner()
+        mongo_data = learner.update()
+        subject = ConcreteSubject(mongo_data["observer_list"], mongo_data["update_message_list"])
+        if request.POST.get('subscribe') == "Subscribe Updates":
+            alert_message = subject.subscribe(username)
+        if request.POST.get('unsubscribe') == "Unsubscribe Updates":
+            alert_message = subject.unsubscribe(username)
+        mongo_data = learner.update()
+        len_update_messages_list = len(mongo_data['update_message_list'])
+        temp = "\n".join(mongo_data['update_message_list'])
+        update_messages_list = [temp]
+        observer_list = mongo_data['observer_list']
+        self.context = {'username': username,
+                        'observer_list': observer_list,
+                        'update_messages_list': update_messages_list,
+                        'len_update_messages_list': len_update_messages_list}
         return render(request, self.template_name, self.context)
 
 
@@ -208,3 +243,4 @@ class LogoutPage(View):
     def get(self, request):
         logout(request)
         return redirect('login')
+# Home and Login Modules End

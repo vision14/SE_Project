@@ -33,9 +33,12 @@
 							{% if request.user.is_staff %}
 								<ul class="links">
 									<li><a href="{% url 'admin_home' %}">Home</a></li>
-									<li><a href="{% url 'admin_classification' %}">Classification</a></li>
-									<li><a href="{% url 'admin_regression' %}">Regression</a></li>
-									<li><a href="{% url 'admin_clustering' %}">Clustering</a></li>
+									<li><a href="{% url 'admin_classification' %}">Admin Classification</a></li>
+									<li><a href="{% url 'admin_regression' %}">Admin Regression</a></li>
+									<li><a href="{% url 'admin_clustering' %}">Admin Clustering</a></li>
+									<li><a href="{% url 'learner_classification' %}">Classification</a></li>
+									<li><a href="{% url 'learner_regression' %}">Regression</a></li>
+									<li><a href="{% url 'learner_clustering' %}">Clustering</a></li>
 									<li><a href="{% url 'logout' %}">Log Out</a></li>
 								</ul>
 							{% else %}
@@ -44,6 +47,18 @@
 									<li><a href="{% url 'learner_classification' %}">Classification</a></li>
 									<li><a href="{% url 'learner_regression' %}">Regression</a></li>
 									<li><a href="{% url 'learner_clustering' %}">Clustering</a></li>
+									{% if username not in observer_list %}
+										<form method="post" action="">
+											{% csrf_token %}
+												<li><input type="submit" name="subscribe" value="Subscribe Updates"></li>
+										</form>
+									{% else %}
+										<form method="post" action="">
+											{% csrf_token %}
+												<li><button onClick="alert({{ update_messages_list }})">Update Messages ({{ len_update_messages_list }})</button></li>
+												<li><input type="submit" name="unsubscribe" value="Unsubscribe Updates"></li>
+										</form>
+									{% endif %}
 									<li><a href="{% url 'logout' %}">Log Out</a></li>
 								</ul>
 							{% endif %}
@@ -145,6 +160,7 @@
 			<script src="{% static 'assets/js/breakpoints.min.js' %}"></script>
 			<script src="{% static 'assets/js/util.js' %}"></script>
 			<script src="{% static 'assets/js/main.js' %}"></script>
+
 
 	</body>
 </html>
