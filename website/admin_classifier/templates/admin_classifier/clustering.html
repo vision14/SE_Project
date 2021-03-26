@@ -28,12 +28,12 @@
 							<h2>Menu</h2>
 							<ul class="links">
 								<li><a href="{% url 'admin_home' %}">Home</a></li>
-								<li><a href="{% url 'admin_classification' %}">Admin Classification</a></li>
-								<li><a href="{% url 'admin_regression' %}">Admin Regression</a></li>
-								<li><a href="{% url 'admin_clustering' %}">Admin Clustering</a></li>
-								<li><a href="{% url 'learner_classification' %}">Classification</a></li>
-								<li><a href="{% url 'learner_regression' %}">Regression</a></li>
-								<li><a href="{% url 'learner_clustering' %}">Clustering</a></li>
+								<li><a href="{% url 'admin_classification' %}">Classification Training</a></li>
+								<li><a href="{% url 'admin_regression' %}">Regression Training</a></li>
+								<li><a href="{% url 'admin_clustering' %}">Clustering Training</a></li>
+								<li><a href="{% url 'learner_classification' %}">Classification Testing</a></li>
+								<li><a href="{% url 'learner_regression' %}">Regression Testing</a></li>
+								<li><a href="{% url 'learner_clustering' %}">Clustering Testing</a></li>
 								<li><a href="{% url 'logout' %}">Log Out</a></li>
 							</ul>
 							<a href="#" class="close">Close</a>
@@ -102,7 +102,7 @@
 													<div class="field">
 														<h3>Provide all feature names separated by commas:</h3>
 														<p>For Example:<br>
-															Age, Estimated Salary</p>
+															Annual Income (In k$), Spending Score</p>
 														<textarea name="pkl_features" rows="4" required></textarea>
 													</div>
 													<div class="field">

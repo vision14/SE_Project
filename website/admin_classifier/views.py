@@ -1,21 +1,40 @@
+# Django Imports
 from django.shortcuts import render
+from django.views import View
+
+# Internal Imports
+from . import mongodb as mdb
+from .my_decorator import AdminStaffRequiredMixin
+
+# Python Package Imports
 import pickle
 import pandas as pd
 from io import StringIO
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score
-from django.views import View
 from bson.binary import Binary
 from base64 import b64encode
-from . import mongodb as mdb
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
 from sklearn.cluster import KMeans
-from .my_decorator import AdminStaffRequiredMixin
 from abc import ABC, abstractmethod
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import f1_score
+from sklearn.preprocessing import StandardScaler
 
 data = pd.DataFrame({})
 db_data = mdb.access()
+
+
+# Home Module Starts
+class Home(AdminStaffRequiredMixin, View):
+
+    template_name = 'admin_classifier/home.html'
+    context = {}
+
+    def get(self, request):
+        return render(request, self.template_name, self.context)
+# Home Module Ends
 
 
 # Simple Factory Pattern Starts:
@@ -79,14 +98,24 @@ class Algorithm(View):
     def csv_upload(upload_file):
         global data
         feature_list = []
-        if upload_file.content_type == 'application/vnd.ms-excel':
+        if upload_file.content_type == 'application/vnd.ms-excel' and upload_file.size < 50000:
             string_data = StringIO(upload_file.read().decode('utf-8'))
             data = pd.read_csv(string_data)
             feature_list = list(data.columns)
             csv_message = "File Uploaded"
         else:
-            csv_message = "Invalid File Type"
+            if upload_file.content_type != 'application/vnd.ms-excel':
+                csv_message = "Invalid File Type"
+            else:
+                csv_message = "Maximum size of the CSV file should be less than 50kb"
         return feature_list, csv_message
+
+    @staticmethod
+    def scale(X_train, X_test):
+        sc = StandardScaler()
+        X_train = sc.fit_transform(X_train)
+        X_test = sc.transform(X_test)
+        return pickle.dumps(sc), X_train, X_test
 
 
 class Classification(AdminStaffRequiredMixin, Algorithm):
@@ -101,6 +130,7 @@ class Classification(AdminStaffRequiredMixin, Algorithm):
     csv_message = None
     update_message = None
     accuracy = None
+    f1_score = None
     algo_desc = None
     ds_desc = None
 
@@ -168,29 +198,40 @@ class Classification(AdminStaffRequiredMixin, Algorithm):
                 training_features = list(request.POST.getlist("training_features"))
                 training_label = str(request.POST.get("training_label"))
                 csv_label_notes_temp = str(request.POST.get("csv_label_notes")).split("\r\n")
-                csv_label_notes = {}
-                for label in csv_label_notes_temp:
-                    temp = label.split("=")
-                    csv_label_notes[temp[0].strip()] = temp[1].strip()
-
-                X = data.loc[:, training_features].values
-                y = data.loc[:, training_label].values
-                classifier = KNeighborsClassifier(n_neighbors=n_neighbors,
-                                                  leaf_size=leaf_size,
-                                                  weights=weights,
-                                                  algorithm=algorithm)
                 try:
-                    classifier.fit(X, y)
-                    y_pred = classifier.predict(X)
-                    self.accuracy = round(accuracy_score(y, y_pred) * 100, 2)
-                    pkl_obj = pickle.dumps(classifier)
-                    mongo_data = {'pkl_data': Binary(pkl_obj), 'training_features': training_features,
-                                  'label_notes': csv_label_notes, 'upload_method': 'csv'}
-                    self.message = mdb.update(db_data, "KNN", mongo_data, "Model Successfully Trained",
-                                              "Unexpected error while training the model")
-                    op_data = mdb.find(db_data, 'OP')
-                    subject_obj = ConcreteSubject(op_data['observer_list'], op_data['update_message_list'])
-                    subject_obj.notify("Classification CSV File")
+                    csv_label_notes = {}
+                    for label in csv_label_notes_temp:
+                        temp = label.split("=")
+                        csv_label_notes[temp[0].strip()] = temp[1].strip()
+
+                    X = data.loc[:, training_features].values
+                    y = data.loc[:, training_label].values
+                    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=0)
+                    classifier = KNeighborsClassifier(n_neighbors=n_neighbors,
+                                                      leaf_size=leaf_size,
+                                                      weights=weights,
+                                                      algorithm=algorithm)
+                    sc, X_train, X_test = Algorithm.scale(X_train, X_test)
+                    classifier.fit(X_train, y_train)
+                    y_pred = classifier.predict(X_test)
+                    self.accuracy = round(accuracy_score(y_test, y_pred) * 100, 2)
+                    self.f1_score = round(f1_score(y_test, y_pred) * 100, 2)
+                    if self.accuracy >= 90 and self.f1_score >= 80:
+                        pkl_obj = pickle.dumps(classifier)
+                        mongo_data = {'pkl_data': Binary(pkl_obj), 'training_features': training_features,
+                                      'label_notes': csv_label_notes, 'upload_method': 'csv',
+                                      'testing_accuracy': self.accuracy, 'f1_score': self.f1_score,
+                                      'scaling_obj': sc}
+                        self.message = mdb.update(db_data, "KNN", mongo_data, "Model Successfully Trained",
+                                                  "Unexpected error while training the model")
+                        op_data = mdb.find(db_data, 'OP')
+                        subject_obj = ConcreteSubject(op_data['observer_list'], op_data['update_message_list'])
+                        subject_obj.notify("Classification CSV File")
+                    else:
+                        self.message = "Model Training Failed. The accuracy of the model should be > 90% and " \
+                                       "the F1-Score should be > 80%. However, this model's accuracy " \
+                                       "is " + str(self.accuracy) + "% and the F1-Score " \
+                                        "is " + str(self.f1_score) + "%."
                 except:
                     self.message = "Unexpected error while training the model"
             else:
@@ -198,7 +239,7 @@ class Classification(AdminStaffRequiredMixin, Algorithm):
 
             self.context = {'submitbutton': self.submit_button, 'pkl_message': self.pkl_message,
                             'csv_message': self.csv_message, 'accuracy': self.accuracy, 'message': self.message,
-                            'algo_desc': self.algo_desc, 'ds_desc': self.ds_desc}
+                            'algo_desc': self.algo_desc, 'ds_desc': self.ds_desc, 'f1_score': self.f1_score}
 
         return render(request, self.template_name, self.context)
 
@@ -214,7 +255,7 @@ class Regression(AdminStaffRequiredMixin, Algorithm):
     pkl_change_message = None
     csv_message = None
     update_message = None
-    mse = None
+    rmse = None
     algo_desc = None
     ds_desc = None
 
@@ -281,29 +322,38 @@ class Regression(AdminStaffRequiredMixin, Algorithm):
                 training_features = list(request.POST.getlist("training_features"))
                 training_label = str(request.POST.get("training_label"))
 
-                X = data.loc[:, training_features].values
-                y = data.loc[:, training_label].values
-                regressor = LinearRegression(fit_intercept=fit_intercept,
-                                             normalize=normalize)
                 try:
-                    regressor.fit(X, y)
-                    y_pred = regressor.predict(X)
-                    self.mse = round((mean_squared_error(y, y_pred))**0.5, 2)
-                    pkl_obj = pickle.dumps(regressor)
-                    mongo_data = {'pkl_data': Binary(pkl_obj), 'training_features': training_features,
-                                  'upload_method': 'csv'}
-                    self.message = mdb.update(db_data, "MLR", mongo_data, "Model Successfully Trained",
-                                              "Unexpected error while training the model")
-                    op_data = mdb.find(db_data, 'OP')
-                    subject_obj = ConcreteSubject(op_data['observer_list'], op_data['update_message_list'])
-                    subject_obj.notify("Regression CSV File")
+                    X = data.loc[:, training_features].values
+                    y = data.loc[:, training_label].values
+                    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=0)
+                    sc, X_train, X_test = Algorithm.scale(X_train, X_test)
+                    regressor = LinearRegression(fit_intercept=fit_intercept,
+                                                 normalize=normalize)
+                    regressor.fit(X_train, y_train)
+                    y_pred = regressor.predict(X_test)
+                    self.rmse = round((mean_squared_error(y_test, y_pred))**0.5, 2)
+                    print(self.rmse, y_test.mean()*0.1)
+                    if self.rmse <= (y_test.mean()*0.1):
+                        pkl_obj = pickle.dumps(regressor)
+                        mongo_data = {'pkl_data': Binary(pkl_obj), 'training_features': training_features,
+                                      'rmse': self.rmse, 'scaling_obj': sc, 'upload_method': 'csv'}
+                        self.message = mdb.update(db_data, "MLR", mongo_data, "Model Successfully Trained",
+                                                  "Unexpected error while training the model")
+                        op_data = mdb.find(db_data, 'OP')
+                        subject_obj = ConcreteSubject(op_data['observer_list'], op_data['update_message_list'])
+                        subject_obj.notify("Regression CSV File")
+                    else:
+                        self.message = "Model Training Failed. The RMSE values of the model should be " \
+                                       "less than 10% of the actual values. For this model, 10% of the actual value " \
+                                       "is " + str(round(y_test.mean()*0.1, 2)) + " and the RMSE value " \
+                                        "is " + str(self.rmse)
                 except:
                     self.message = "Unexpected error while training the model"
             else:
                 self.message = "Invalid Image Type"
 
             self.context = {'submitbutton': self.submit_button, 'pkl_message': self.pkl_message,
-                            'csv_message': self.csv_message, 'mse': self.mse, 'message': self.message,
+                            'csv_message': self.csv_message, 'rmse': self.rmse, 'message': self.message,
                             'algo_desc': self.algo_desc, 'ds_desc': self.ds_desc}
 
         return render(request, self.template_name, self.context)
@@ -417,17 +467,6 @@ class Clustering(AdminStaffRequiredMixin, Algorithm):
 
         return render(request, self.template_name, self.context)
 # Simple Factory Pattern Ends
-
-
-# Home Module Starts
-class Home(AdminStaffRequiredMixin, View):
-
-    template_name = 'admin_classifier/home.html'
-    context = {}
-
-    def get(self, request):
-        return render(request, self.template_name, self.context)
-# Home Module Ends
 
 
 # Observer Pattern Starts

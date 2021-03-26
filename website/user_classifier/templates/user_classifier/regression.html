@@ -43,7 +43,6 @@
 									<li><a href="{% url 'learner_classification' %}">Classification</a></li>
 									<li><a href="{% url 'learner_regression' %}">Regression</a></li>
 									<li><a href="{% url 'learner_clustering' %}">Clustering</a></li>
-									<li><a href="#">Update Messages ({{ len_update_messages_list }})</a></li>
 									<li><a href="{% url 'logout' %}">Log Out</a></li>
 								</ul>
 							{% endif %}
@@ -126,7 +125,7 @@
 									{% for feature in training_features %}
 										<div class="field">
 											<label for="user_inputs">{{ feature }}</label>
-											<input type="number" name="user_inputs" id="user_inputs" required/>
+											<input type="number" name="user_inputs" id="user_inputs" min="0" required/>
 										</div>
 									{% endfor %}
 								</div>

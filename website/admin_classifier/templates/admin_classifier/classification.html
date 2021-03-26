@@ -28,12 +28,12 @@
 							<h2>Menu</h2>
 							<ul class="links">
 								<li><a href="{% url 'admin_home' %}">Home</a></li>
-								<li><a href="{% url 'admin_classification' %}">Admin Classification</a></li>
-								<li><a href="{% url 'admin_regression' %}">Admin Regression</a></li>
-								<li><a href="{% url 'admin_clustering' %}">Admin Clustering</a></li>
-								<li><a href="{% url 'learner_classification' %}">Classification</a></li>
-								<li><a href="{% url 'learner_regression' %}">Regression</a></li>
-								<li><a href="{% url 'learner_clustering' %}">Clustering</a></li>
+								<li><a href="{% url 'admin_classification' %}">Classification Training</a></li>
+								<li><a href="{% url 'admin_regression' %}">Regression Training</a></li>
+								<li><a href="{% url 'admin_clustering' %}">Clustering Training</a></li>
+								<li><a href="{% url 'learner_classification' %}">Classification Testing</a></li>
+								<li><a href="{% url 'learner_regression' %}">Regression Testing</a></li>
+								<li><a href="{% url 'learner_clustering' %}">Clustering Testing</a></li>
 								<li><a href="{% url 'logout' %}">Log Out</a></li>
 							</ul>
 							<a href="#" class="close">Close</a>
@@ -108,8 +108,8 @@
 													<div class="field">
 														<h3>Provide the label values and their output:</h3>
 														<p>For Example:<br>
-														0 = The customer will not buy the product<br>
-														1 = The customer will buy the product</p>
+														0 = The person will not buy a farm house<br>
+														1 = The person will buy a farm house</p>
 														<textarea name="pkl_label_notes" rows="4" required></textarea>
 													</div>
 													<div class="field">
@@ -192,8 +192,8 @@
 													<div class="col-12">
 														<h4>Provide the label values and their output:</h4>
 														<p>For Example:<br>
-														0 = The customer will not buy the product<br>
-														1 = The customer will buy the product</p>
+														0 = The person will not buy a farm house<br>
+														1 = The person will buy a farm house</p>
 														<textarea name="csv_label_notes" rows="4" required></textarea>
 													</div>
 													<div class="col-12">
@@ -212,7 +212,7 @@
 										{% if submitbutton == "Submit" %}
 											<h2 class="major">Result</h2>
 											{% if message == "Model Successfully Trained" %}
-												<p> {{ message }} with {{ accuracy }}% Training Accuracy</p>
+												<p> {{ message }} with {{ accuracy }}% Testing Accuracy and {{ f1_score }}% F1-Score</p>
 											{% else %}
 												<p> {{ message }} </p>
 											{% endif %}

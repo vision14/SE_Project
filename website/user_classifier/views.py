@@ -1,148 +1,23 @@
+# Django Imports
 from django.shortcuts import render, redirect
-import pickle
-from django.views import View
-import numpy as np
-from . import mongodb as mdb
-from .forms import CreateUserForm
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.contrib.auth.models import Group
+from django.views import View
+
+# Internal Imports
+from . import mongodb as mdb
+from .forms import CreateUserForm
 from admin_classifier.views import ConcreteSubject, ConcreteLearner
+
+# Python Package Imports
+import pickle
+import numpy as np
 
 # Create your views here.
 db_data = mdb.access()
-
-
-# Algorithm Module Starts
-class Algorithm(View):
-
-    def get(self, request):
-        pass
-
-    def post(self, request):
-        pass
-
-
-@method_decorator(login_required, name='dispatch')
-class Classification(Algorithm):
-
-    template_name = 'user_classifier/classification.html'
-    message = ""
-    submit_button = None
-
-    def get(self, request):
-
-        data = mdb.find(db_data, "KNN")
-        context = {'algo_desc': data['algo_desc'], 'ds_desc': data['ds_desc'],
-                   'training_features': data['training_features']}
-
-        return render(request, self.template_name, context)
-
-    def post(self, request):
-
-        data = mdb.find(db_data, "KNN")
-        graph_image = data['graph_image']
-        if data['upload_method'] == 'pkl':
-            classifier = pickle.loads(pickle.loads(data['pkl_data']).read())
-        else:
-            classifier = pickle.loads(data['pkl_data'])
-        if 'submit' in request.POST:
-            self.submit_button = request.POST.get("submit")
-            output_message = data['label_notes']
-            user_inputs = np.array(request.POST.getlist('user_inputs')).astype(np.float64)
-            preds = classifier.predict([user_inputs])
-
-            if str(preds[0]) in output_message:
-                self.message = output_message[str(preds[0])]
-            else:
-                self.message = "Unexpected error while predicting the output"
-
-        context = {'algo_desc': data['algo_desc'], 'ds_desc': data['ds_desc'],
-                   'training_features': data['training_features'], 'graph_image': graph_image,
-                   'message': self.message, 'submitbutton': self.submit_button}
-
-        return render(request, self.template_name, context)
-
-
-@method_decorator(login_required, name='dispatch')
-class Regression(Algorithm):
-
-    template_name = 'user_classifier/regression.html'
-    message = ""
-    submit_button = None
-
-    def get(self, request):
-
-        data = mdb.find(db_data, "MLR")
-        context = {'algo_desc': data['algo_desc'], 'ds_desc': data['ds_desc'],
-                   'training_features': data['training_features']}
-
-        return render(request, self.template_name, context)
-
-    def post(self, request):
-
-        data = mdb.find(db_data, "MLR")
-        graph_image = data['graph_image']
-        if data['upload_method'] == 'pkl':
-            regressor = pickle.loads(pickle.loads(data['pkl_data']).read())
-        else:
-            regressor = pickle.loads(data['pkl_data'])
-        if 'submit' in request.POST:
-            self.submit_button = request.POST.get("submit")
-            user_inputs = np.array(request.POST.getlist('user_inputs')).astype(np.float64)
-            preds = regressor.predict([user_inputs])
-
-            self.message = "The predicted profit of the startup is " + str(round(preds[0], 2))
-
-        context = {'algo_desc': data['algo_desc'], 'ds_desc': data['ds_desc'],
-                   'training_features': data['training_features'], 'graph_image': graph_image,
-                   'message': self.message, 'submitbutton': self.submit_button}
-
-        return render(request, self.template_name, context)
-
-
-@method_decorator(login_required, name='dispatch')
-class Clustering(Algorithm):
-
-    template_name = 'user_classifier/clustering.html'
-    message = ""
-    submit_button = None
-
-    def get(self, request):
-
-        data = mdb.find(db_data, "KM")
-        context = {'algo_desc': data['algo_desc'], 'ds_desc': data['ds_desc'],
-                   'training_features': data['training_features']}
-
-        return render(request, self.template_name, context)
-
-    def post(self, request):
-
-        data = mdb.find(db_data, "KM")
-        graph_image = data['graph_image']
-        if data['upload_method'] == 'pkl':
-            classifier = pickle.loads(pickle.loads(data['pkl_data']).read())
-        else:
-            classifier = pickle.loads(data['pkl_data'])
-        if 'submit' in request.POST:
-            self.submit_button = request.POST.get("submit")
-            output_message = data['label_notes']
-            user_inputs = np.array(request.POST.getlist('user_inputs')).astype(np.float64)
-            preds = classifier.predict([user_inputs])
-
-            if str(preds[0]) in output_message:
-                self.message = output_message[str(preds[0])]
-            else:
-                self.message = "Unexpected error while predicting the output"
-
-        context = {'algo_desc': data['algo_desc'], 'ds_desc': data['ds_desc'],
-                   'training_features': data['training_features'], 'graph_image': graph_image,
-                   'message': self.message, 'submitbutton': self.submit_button}
-
-        return render(request, self.template_name, context)
-# Algorithm Module Ends
 
 
 # Home and Login Module Starts
@@ -244,3 +119,148 @@ class LogoutPage(View):
         logout(request)
         return redirect('login')
 # Home and Login Modules End
+
+
+# Simple Factory Pattern Starts
+class Algorithm(View):
+
+    def get(self, request):
+        pass
+
+    def post(self, request):
+        pass
+
+
+@method_decorator(login_required, name='dispatch')
+class Classification(Algorithm):
+
+    template_name = 'user_classifier/classification.html'
+    message = ""
+    submit_button = None
+
+    def get(self, request):
+
+        data = mdb.find(db_data, "KNN")
+        context = {'algo_desc': data['algo_desc'], 'ds_desc': data['ds_desc'],
+                   'training_features': data['training_features']}
+
+        return render(request, self.template_name, context)
+
+    def post(self, request):
+
+        data = mdb.find(db_data, "KNN")
+        graph_image = data['graph_image']
+        if data['upload_method'] == 'pkl':
+            classifier = pickle.loads(pickle.loads(data['pkl_data']).read())
+        else:
+            classifier = pickle.loads(data['pkl_data'])
+        if 'submit' in request.POST:
+            self.submit_button = request.POST.get("submit")
+            output_message = data['label_notes']
+            user_inputs = [np.array(request.POST.getlist('user_inputs')).astype(np.float64)]
+            sc = pickle.loads(data['scaling_obj'])
+
+            try:
+                user_inputs = sc.transform(user_inputs)
+                preds = classifier.predict(user_inputs)
+                self.message = output_message[str(preds[0])]
+                if data['upload_method'] == 'csv':
+                    accuracy = data['testing_accuracy']
+                    f1_score = data['f1_score']
+                    extra = " (" + str(accuracy) + "% accuracy and " + str(f1_score) + "% F1-Score)"
+                    self.message = self.message + extra
+            except:
+                self.message = "Unexpected error while predicting the output"
+
+        context = {'algo_desc': data['algo_desc'], 'ds_desc': data['ds_desc'],
+                   'training_features': data['training_features'], 'graph_image': graph_image,
+                   'message': self.message, 'submitbutton': self.submit_button}
+
+        return render(request, self.template_name, context)
+
+
+@method_decorator(login_required, name='dispatch')
+class Regression(Algorithm):
+
+    template_name = 'user_classifier/regression.html'
+    message = ""
+    submit_button = None
+
+    def get(self, request):
+
+        data = mdb.find(db_data, "MLR")
+        context = {'algo_desc': data['algo_desc'], 'ds_desc': data['ds_desc'],
+                   'training_features': data['training_features']}
+
+        return render(request, self.template_name, context)
+
+    def post(self, request):
+
+        data = mdb.find(db_data, "MLR")
+        graph_image = data['graph_image']
+        if data['upload_method'] == 'pkl':
+            regressor = pickle.loads(pickle.loads(data['pkl_data']).read())
+        else:
+            regressor = pickle.loads(data['pkl_data'])
+        if 'submit' in request.POST:
+            self.submit_button = request.POST.get("submit")
+            user_inputs = [np.array(request.POST.getlist('user_inputs')).astype(np.float64)]
+            sc = pickle.loads(data['scaling_obj'])
+
+            try:
+                user_inputs = sc.transform(user_inputs)
+                preds = regressor.predict(user_inputs)
+                self.message = "The predicted profit of the startup is " + str(round(preds[0], 2))
+                if data['upload_method'] == 'csv':
+                    rmse = data['rmse']
+                    extra = " (With " + str(rmse) + " Root Mean-Squared Error)"
+                    self.message = self.message + extra
+            except:
+                self.message = "Unexpected error while predicting the output"
+
+        context = {'algo_desc': data['algo_desc'], 'ds_desc': data['ds_desc'],
+                   'training_features': data['training_features'], 'graph_image': graph_image,
+                   'message': self.message, 'submitbutton': self.submit_button}
+
+        return render(request, self.template_name, context)
+
+
+@method_decorator(login_required, name='dispatch')
+class Clustering(Algorithm):
+
+    template_name = 'user_classifier/clustering.html'
+    message = ""
+    submit_button = None
+
+    def get(self, request):
+
+        data = mdb.find(db_data, "KM")
+        context = {'algo_desc': data['algo_desc'], 'ds_desc': data['ds_desc'],
+                   'training_features': data['training_features']}
+
+        return render(request, self.template_name, context)
+
+    def post(self, request):
+
+        data = mdb.find(db_data, "KM")
+        graph_image = data['graph_image']
+        if data['upload_method'] == 'pkl':
+            classifier = pickle.loads(pickle.loads(data['pkl_data']).read())
+        else:
+            classifier = pickle.loads(data['pkl_data'])
+        if 'submit' in request.POST:
+            self.submit_button = request.POST.get("submit")
+            output_message = data['label_notes']
+            user_inputs = np.array(request.POST.getlist('user_inputs')).astype(np.float64)
+            try:
+                preds = classifier.predict([user_inputs])
+                self.message = output_message[str(preds[0])]
+            except:
+                self.message = "Unexpected error while predicting the output"
+
+        context = {'algo_desc': data['algo_desc'], 'ds_desc': data['ds_desc'],
+                   'training_features': data['training_features'], 'graph_image': graph_image,
+                   'message': self.message, 'submitbutton': self.submit_button}
+
+        return render(request, self.template_name, context)
+# Simple Factory Pattern Ends

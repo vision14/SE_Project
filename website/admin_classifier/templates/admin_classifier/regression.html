@@ -28,12 +28,12 @@
 							<h2>Menu</h2>
 							<ul class="links">
 								<li><a href="{% url 'admin_home' %}">Home</a></li>
-								<li><a href="{% url 'admin_classification' %}">Admin Classification</a></li>
-								<li><a href="{% url 'admin_regression' %}">Admin Regression</a></li>
-								<li><a href="{% url 'admin_clustering' %}">Admin Clustering</a></li>
-								<li><a href="{% url 'learner_classification' %}">Classification</a></li>
-								<li><a href="{% url 'learner_regression' %}">Regression</a></li>
-								<li><a href="{% url 'learner_clustering' %}">Clustering</a></li>
+								<li><a href="{% url 'admin_classification' %}">Classification Training</a></li>
+								<li><a href="{% url 'admin_regression' %}">Regression Training</a></li>
+								<li><a href="{% url 'admin_clustering' %}">Clustering Training</a></li>
+								<li><a href="{% url 'learner_classification' %}">Classification Testing</a></li>
+								<li><a href="{% url 'learner_regression' %}">Regression Testing</a></li>
+								<li><a href="{% url 'learner_clustering' %}">Clustering Testing</a></li>
 								<li><a href="{% url 'logout' %}">Log Out</a></li>
 							</ul>
 							<a href="#" class="close">Close</a>
@@ -102,7 +102,7 @@
 													<div class="field">
 														<h3>Provide all feature names separated by commas:</h3>
 														<p>For Example:<br>
-															Age, Estimated Salary</p>
+															R&D Spend, Administration Spend, Marketing Spend</p>
 														<textarea name="pkl_features" rows="4" required></textarea>
 													</div>
 													<div class="field">
@@ -188,7 +188,7 @@
 										{% if submitbutton == "Submit" %}
 											<h2 class="major">Result</h2>
 											{% if message == "Model Successfully Trained" %}
-												<p> {{ message }} with {{ mse }} Mean-Squared Error</p>
+												<p> {{ message }} with {{ rmse }} Root Mean-Squared Error</p>
 											{% else %}
 												<p> {{ message }} </p>
 											{% endif %}
